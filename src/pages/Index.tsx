@@ -1,16 +1,22 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useAuth } from "@/contexts/AuthContext";
+import { PostFeed } from "@/components/PostFeed";
+import { TierBadge } from "@/components/TierBadge";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
+  const { profile } = useAuth();
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="space-y-4">
+      <section className="rounded-2xl border bg-gradient-to-br from-primary to-primary-hover p-5 text-primary-foreground shadow-elevated">
+        <p className="text-xs uppercase tracking-wider opacity-80">Welcome back</p>
+        <h1 className="mt-1 text-2xl font-bold">{profile?.name}</h1>
+        <div className="mt-2 flex items-center gap-2 text-sm opacity-90">
+          <span>Your tier:</span>
+          {profile && <TierBadge tier={profile.tier} />}
+        </div>
+      </section>
+      <PostFeed />
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;

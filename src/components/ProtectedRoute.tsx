@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import { AccessDenied } from "@/components/AccessDenied";
 
 export const ProtectedRoute = ({
   children,
@@ -36,7 +37,9 @@ export const ProtectedRoute = ({
     );
   }
 
-  if (requireAdmin && !isAdmin) return <Navigate to="/" replace />;
+  if (requireAdmin && !isAdmin) {
+    return <AccessDenied message="هذه الصفحة مخصصة للمسؤول فقط. تأكد أنك مسجل الدخول بحساب الأدمن." />;
+  }
 
   return <>{children}</>;
 };

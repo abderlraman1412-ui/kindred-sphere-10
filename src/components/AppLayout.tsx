@@ -32,9 +32,9 @@ export const AppLayout = () => {
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:px-4">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <span className="text-lg font-black">P</span>
+              <span className="text-lg font-black">T</span>
             </div>
-            <span className="hidden text-lg font-bold tracking-tight sm:inline">Pulse</span>
+            <span className="hidden text-lg font-bold tracking-tight sm:inline">TAIPING MEDIU</span>
           </Link>
 
           <nav className="ml-2 hidden items-center gap-1 md:flex">

@@ -34,33 +34,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (uid: string) => {
-    const [{ data: p }, { data: roles }] = await Promise.all([
+    setLoading(true);
+    const [{ data: p, error: profileError }, { data: roles, error: roleError }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
-    setProfile((p as Profile) ?? null);
-    setIsAdmin(!!roles?.some((r: any) => r.role === "admin"));
+
+    if (profileError) {
+      console.error("Failed to load profile", profileError);
+      setProfile(null);
+    } else {
+      setProfile((p as Profile) ?? null);
+    }
+
+    if (roleError) {
+      console.error("Failed to load roles", roleError);
+      setIsAdmin(false);
+    } else {
+      setIsAdmin(!!roles?.some((r: { role: string }) => r.role === "admin"));
+    }
+
+    setLoading(false);
   };
 
   useEffect(() => {
-    // Listener FIRST
     const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
+
       if (sess?.user) {
-        // defer to avoid deadlock
-        setTimeout(() => loadProfile(sess.user.id), 0);
+        setTimeout(() => {
+          void loadProfile(sess.user.id);
+        }, 0);
       } else {
         setProfile(null);
         setIsAdmin(false);
+        setLoading(false);
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
+    void supabase.auth.getSession().then(({ data: { session: sess } }) => {
       setSession(sess);
       setUser(sess?.user ?? null);
-      if (sess?.user) loadProfile(sess.user.id).finally(() => setLoading(false));
-      else setLoading(false);
+      if (sess?.user) {
+        void loadProfile(sess.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     return () => sub.subscription.unsubscribe();
@@ -74,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
     setProfile(null);
     setIsAdmin(false);
+    setLoading(false);
   };
 
   return (

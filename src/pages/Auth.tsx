@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { useState } from "react";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useNavigate, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,16 @@ const signupSchema = loginSchema.extend({
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading } = useAuth();
   const [busy, setBusy] = useState(false);
 
-  if (!loading && user) return <Navigate to="/" replace />;
+  const redirectTo = useMemo(() => {
+    const state = location.state as { from?: { pathname?: string } } | null;
+    return state?.from?.pathname || "/";
+  }, [location.state]);
+
+  if (!loading && user) return <Navigate to={redirectTo} replace />;
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,7 +46,7 @@ const Auth = () => {
     });
     setBusy(false);
     if (error) toast.error(error.message);
-    else navigate("/", { replace: true });
+    else navigate(redirectTo, { replace: true });
   };
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,7 +66,7 @@ const Auth = () => {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}${redirectTo}`,
         data: { name: parsed.data.name },
       },
     });
@@ -68,7 +74,7 @@ const Auth = () => {
     if (error) toast.error(error.message);
     else {
       toast.success("Account created! You're signed in.");
-      navigate("/", { replace: true });
+      navigate(redirectTo, { replace: true });
     }
   };
 

@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { TierBadge } from "@/components/TierBadge";
+import { AdminBadge } from "@/components/AdminBadge";
+import { useAdminIds } from "@/hooks/useAdminIds";
 import { Heart, MessageCircle, Share2, Trash2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -22,6 +24,7 @@ export interface PostRow {
   like_count?: number;
   comment_count?: number;
   liked_by_me?: boolean;
+  author_is_admin?: boolean;
 }
 
 interface CommentRow {
@@ -42,6 +45,10 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
   const [commentText, setCommentText] = useState("");
   const [loadingComments, setLoadingComments] = useState(false);
   const [posting, setPosting] = useState(false);
+
+  const commenterIds = comments.map((c) => c.user_id);
+  const adminIds = useAdminIds([post.author_id, ...commenterIds]);
+  const authorIsAdmin = post.author_is_admin ?? adminIds.has(post.author_id);
 
   const initials = post.author?.name?.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase() ?? "U";
 
@@ -100,7 +107,7 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
   const share = async () => {
     const url = `${window.location.origin}/post/${post.id}`;
     try {
-      if (navigator.share) await navigator.share({ url, title: "Pulse post" });
+      if (navigator.share) await navigator.share({ url, title: "TAIPING MEDIU post" });
       else { await navigator.clipboard.writeText(url); toast.success("Link copied"); }
     } catch {}
   };
@@ -115,13 +122,14 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
   return (
     <article className="rounded-2xl border bg-surface shadow-card animate-fade-in">
       <header className="flex items-center gap-3 p-4">
-        <Avatar className="h-10 w-10">
+        <Avatar className="h-10 w-10 ring-2 ring-transparent ring-offset-2 ring-offset-surface data-[admin=true]:ring-vip" data-admin={authorIsAdmin}>
           <AvatarImage src={post.author?.avatar_url ?? undefined} />
           <AvatarFallback className="bg-primary text-primary-foreground text-sm">{initials}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="truncate font-semibold text-surface-foreground">{post.author?.name ?? "Unknown"}</span>
+            {authorIsAdmin && <AdminBadge size="xs" />}
             {post.author?.tier && <TierBadge tier={post.author.tier} size="xs" />}
           </div>
           <p className="text-xs text-muted-foreground">
@@ -168,15 +176,21 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
             <p className="py-2 text-center text-xs text-muted-foreground">No comments yet</p>
           ) : (
             <ul className="space-y-2">
-              {comments.map((c) => (
-                <li key={c.id} className="flex gap-2">
-                  <Avatar className="h-7 w-7"><AvatarImage src={c.author?.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{c.author?.name?.[0] ?? "U"}</AvatarFallback></Avatar>
-                  <div className="rounded-2xl bg-surface px-3 py-1.5 text-sm shadow-card">
-                    <p className="text-xs font-semibold">{c.author?.name ?? "User"}</p>
-                    <p className="break-words">{c.content}</p>
-                  </div>
-                </li>
-              ))}
+              {comments.map((c) => {
+                const cAdmin = adminIds.has(c.user_id);
+                return (
+                  <li key={c.id} className="flex gap-2">
+                    <Avatar className="h-7 w-7"><AvatarImage src={c.author?.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{c.author?.name?.[0] ?? "U"}</AvatarFallback></Avatar>
+                    <div className="rounded-2xl bg-surface px-3 py-1.5 text-sm shadow-card">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold">{c.author?.name ?? "User"}</p>
+                        {cAdmin && <AdminBadge size="xs" />}
+                      </div>
+                      <p className="break-words">{c.content}</p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <form onSubmit={submitComment} className="mt-3 flex items-end gap-2">

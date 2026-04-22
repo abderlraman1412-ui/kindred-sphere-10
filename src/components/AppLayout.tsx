@@ -7,9 +7,10 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, Bell } from "lucide-react";
+import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut } from "lucide-react";
 import { TierBadge } from "@/components/TierBadge";
 import { NotificationBell } from "@/components/NotificationBell";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const navItems = [
   { to: "/", label: "Feed", icon: Home, end: true },
@@ -30,12 +31,7 @@ export const AppLayout = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-surface/80 backdrop-blur supports-[backdrop-filter]:bg-surface/60">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:px-4">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <span className="text-lg font-black">T</span>
-            </div>
-            <span className="hidden text-lg font-bold tracking-tight sm:inline">TAIPING MEDIU</span>
-          </Link>
+          <BrandLogo hideTextOnMobile size="md" />
 
           <nav className="ml-2 hidden items-center gap-1 md:flex">
             {navItems.map((n) => {

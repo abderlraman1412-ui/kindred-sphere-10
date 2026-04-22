@@ -37,6 +37,7 @@ export default {
           pro: "hsl(var(--pro))",
           vip: "hsl(var(--vip))",
         },
+        vip: "hsl(var(--vip))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

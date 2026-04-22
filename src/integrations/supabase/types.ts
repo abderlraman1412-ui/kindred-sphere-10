@@ -184,6 +184,27 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          favicon_url: string | null
+          id: boolean
+          logo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          favicon_url?: string | null
+          id?: boolean
+          logo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          favicon_url?: string | null
+          id?: boolean
+          logo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

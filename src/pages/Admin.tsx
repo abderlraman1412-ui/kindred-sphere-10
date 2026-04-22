@@ -16,9 +16,11 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { BrandLogo } from "@/components/BrandLogo";
+import { BrandingSettings } from "@/components/BrandingSettings";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
 type PostType = "text" | "image" | "video";
@@ -161,11 +163,12 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="border-b bg-surface">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-          <Link to="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
+          <BrandLogo nameOverride="TAIPING MEDIA Admin" size="sm" />
+          <Link to="/" className="ml-auto flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to app
           </Link>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-success" />
             <span className="text-sm font-semibold">Admin Portal</span>
           </div>
@@ -175,7 +178,7 @@ const Admin = () => {
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Manage users, content, and platform activity.</p>
+          <p className="text-sm text-muted-foreground">Manage users, content, branding, and platform activity.</p>
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
@@ -184,6 +187,7 @@ const Admin = () => {
             <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" />Users</TabsTrigger>
             <TabsTrigger value="posts"><FileText className="mr-2 h-4 w-4" />Posts</TabsTrigger>
             <TabsTrigger value="compose"><Plus className="mr-2 h-4 w-4" />New post</TabsTrigger>
+            <TabsTrigger value="branding"><Palette className="mr-2 h-4 w-4" />Branding</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">

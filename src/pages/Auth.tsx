@@ -21,13 +21,14 @@ const signupSchema = loginSchema.extend({
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const [busy, setBusy] = useState(false);
 
   const redirectTo = useMemo(() => {
     const state = location.state as { from?: { pathname?: string } } | null;
-    return state?.from?.pathname || "/";
-  }, [location.state]);
+    if (state?.from?.pathname) return state.from.pathname;
+    return isAdmin ? "/super-secret-admin-portal" : "/";
+  }, [location.state, isAdmin]);
 
   if (!loading && user) return <Navigate to={redirectTo} replace />;
 
@@ -46,7 +47,7 @@ const Auth = () => {
     });
     setBusy(false);
     if (error) toast.error(error.message);
-    else navigate(redirectTo, { replace: true });
+    // Redirect handled by the effect above once auth state and isAdmin resolve.
   };
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {

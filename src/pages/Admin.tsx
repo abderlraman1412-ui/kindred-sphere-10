@@ -397,6 +397,10 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="branding">
+            <BrandingSettings />
+          </TabsContent>
         </Tabs>
       </div>
     </div>

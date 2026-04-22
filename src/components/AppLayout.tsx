@@ -62,20 +62,42 @@ export const AppLayout = () => {
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full p-1 hover:bg-muted">
-                  <Avatar className="h-8 w-8">
+                <button
+                  className="group flex items-center gap-2 rounded-full p-1 transition-colors hover:bg-muted"
+                  aria-label="Open profile menu"
+                >
+                  <Avatar className={`h-8 w-8 ${isAdmin ? "ring-2 ring-vip ring-offset-2 ring-offset-surface" : ""}`}>
                     <AvatarImage src={profile?.avatar_url ?? undefined} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
+                    <AvatarFallback className="bg-primary text-xs text-primary-foreground">{initials}</AvatarFallback>
                   </Avatar>
+                  {profile && (
+                    <span className="hidden max-w-[120px] truncate text-sm font-medium md:inline">
+                      {profile.name}
+                    </span>
+                  )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-60">
                 <DropdownMenuLabel>
-                  <div className="flex items-center gap-2">
-                    <span className="truncate">{profile?.name}</span>
-                    {profile && <TierBadge tier={profile.tier} />}
-                  </div>
-                  <p className="truncate text-xs font-normal text-muted-foreground">{profile?.email}</p>
+                  <button
+                    className="flex w-full items-center gap-3 text-left"
+                    onClick={() => navigate("/profile")}
+                  >
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={profile?.avatar_url ?? undefined} />
+                      <AvatarFallback className="bg-primary text-xs text-primary-foreground">{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="truncate font-semibold">{profile?.name}</span>
+                        {isAdmin && <span title="Admin" aria-label="Admin">👑</span>}
+                      </div>
+                      <p className="truncate text-xs font-normal text-muted-foreground">{profile?.email}</p>
+                      <div className="mt-1 flex items-center gap-1">
+                        {profile && <TierBadge tier={profile.tier} size="xs" />}
+                      </div>
+                    </div>
+                  </button>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/profile")}>
@@ -83,7 +105,7 @@ export const AppLayout = () => {
                 </DropdownMenuItem>
                 {isAdmin && (
                   <DropdownMenuItem onClick={() => navigate("/super-secret-admin-portal")}>
-                    <span className="mr-2 inline-flex h-4 w-4 items-center justify-center rounded-sm bg-primary text-[10px] font-bold text-primary-foreground">A</span>
+                    <span className="mr-2 inline-flex h-4 w-4 items-center justify-center rounded-sm bg-gradient-to-br from-warning to-vip text-[10px] font-bold text-warning-foreground">A</span>
                     Admin portal
                   </DropdownMenuItem>
                 )}

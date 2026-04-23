@@ -101,16 +101,18 @@ export const MessageInput = ({ conversationId, onSend, onTyping, disableImage, p
           className="hidden"
           onChange={handleFile}
         />
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          aria-label="Attach image"
-        >
-          <ImageIcon className="h-5 w-5" />
-        </Button>
+        {!disableImage && (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            aria-label="Attach image"
+          >
+            <ImageIcon className="h-5 w-5" />
+          </Button>
+        )}
         <Popover>
           <PopoverTrigger asChild>
             <Button type="button" size="icon" variant="ghost" aria-label="Emoji">
@@ -133,9 +135,10 @@ export const MessageInput = ({ conversationId, onSend, onTyping, disableImage, p
           value={text}
           onChange={(e) => { setText(e.target.value); onTyping(); }}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message"
+          placeholder={placeholder ?? "Type a message"}
           rows={1}
           className="min-h-10 max-h-32 resize-none"
+          disabled={sending}
         />
         <Button
           type="button"

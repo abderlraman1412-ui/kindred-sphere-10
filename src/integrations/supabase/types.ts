@@ -56,6 +56,33 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message: string | null
+          last_message_at: string | null
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -81,6 +108,76 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reads: {
+        Row: {
+          conversation_id: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string | null
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          image_url: string | null
+          seen: boolean
+          seen_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          seen?: boolean
+          seen_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          seen?: boolean
+          seen_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -156,6 +253,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          last_seen: string | null
           name: string
           tier: Database["public"]["Enums"]["account_tier"]
           updated_at: string
@@ -167,6 +265,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id: string
+          last_seen?: string | null
           name?: string
           tier?: Database["public"]["Enums"]["account_tier"]
           updated_at?: string
@@ -178,6 +277,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          last_seen?: string | null
           name?: string
           tier?: Database["public"]["Enums"]["account_tier"]
           updated_at?: string
@@ -236,6 +336,10 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["account_tier"]
       }
+      get_or_create_conversation: {
+        Args: { _other_user: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -243,6 +347,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_conversation_member: {
+        Args: { _conv_id: string; _uid: string }
+        Returns: boolean
+      }
+      mark_conversation_read: { Args: { _conv_id: string }; Returns: undefined }
       tier_rank: {
         Args: { t: Database["public"]["Enums"]["account_tier"] }
         Returns: number

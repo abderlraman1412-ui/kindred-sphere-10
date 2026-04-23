@@ -31,14 +31,14 @@ export const MessageInput = ({ conversationId, onSend, onTyping, disableImage, p
   const handleSubmit = async () => {
     const trimmed = text.trim();
     if (!trimmed && !imageUrl) return;
-    setSending(true);
+    setInternalSending(true);
     try {
       await onSend({ content: trimmed || undefined, image_url: imageUrl || undefined });
       setText("");
       setImagePreview(null);
       setImageUrl(null);
     } finally {
-      setSending(false);
+      setInternalSending(false);
     }
   };
 

@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage: {
+        Row: {
+          count: number
+          day: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          day?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          day?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -286,18 +304,24 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          ai_daily_limit: number
+          ai_enabled: boolean
           favicon_url: string | null
           id: boolean
           logo_url: string | null
           updated_at: string
         }
         Insert: {
+          ai_daily_limit?: number
+          ai_enabled?: boolean
           favicon_url?: string | null
           id?: boolean
           logo_url?: string | null
           updated_at?: string
         }
         Update: {
+          ai_daily_limit?: number
+          ai_enabled?: boolean
           favicon_url?: string | null
           id?: boolean
           logo_url?: string | null
@@ -331,6 +355,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ai_remaining_today: { Args: never; Returns: number }
       current_user_banned: { Args: never; Returns: boolean }
       current_user_tier: {
         Args: never

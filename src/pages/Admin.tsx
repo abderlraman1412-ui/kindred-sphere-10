@@ -16,11 +16,12 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";
 import { BrandingSettings } from "@/components/BrandingSettings";
+import { AdminMessages } from "@/components/AdminMessages";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
 type PostType = "text" | "image" | "video";
@@ -187,6 +188,7 @@ const Admin = () => {
             <TabsTrigger value="users"><Users className="mr-2 h-4 w-4" />Users</TabsTrigger>
             <TabsTrigger value="posts"><FileText className="mr-2 h-4 w-4" />Posts</TabsTrigger>
             <TabsTrigger value="compose"><Plus className="mr-2 h-4 w-4" />New post</TabsTrigger>
+            <TabsTrigger value="messages"><MessageSquare className="mr-2 h-4 w-4" />Messages</TabsTrigger>
             <TabsTrigger value="branding"><Palette className="mr-2 h-4 w-4" />Branding</TabsTrigger>
           </TabsList>
 
@@ -396,6 +398,10 @@ const Admin = () => {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <AdminMessages />
           </TabsContent>
 
           <TabsContent value="branding">

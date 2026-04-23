@@ -84,11 +84,14 @@ export const useConversations = () => {
     void load();
   }, [load]);
 
-  // Subscribe to conversation + message changes for live updates
+  // Subscribe to conversation + message changes for live updates.
+  // Use a unique channel name per hook instance so multiple consumers
+  // (e.g. Messages page + useUnreadCount in navbar) don't collide.
   useEffect(() => {
     if (!user) return;
+    const channelName = `conversations-list-${user.id}-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel("conversations-list-" + user.id)
+      .channel(channelName)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => {
         void load();
       })

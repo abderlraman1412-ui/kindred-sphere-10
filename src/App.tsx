@@ -16,6 +16,7 @@ import ImagePosts from "./pages/ImagePosts.tsx";
 import VideoPosts from "./pages/VideoPosts.tsx";
 import Admin from "./pages/Admin.tsx";
 import CreatePost from "./pages/CreatePost.tsx";
+import Messages from "./pages/Messages.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const App = () => (
                 <Route path="/videos" element={<VideoPosts />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/create-post" element={<CreatePost />} />
+                <Route path="/messages" element={<Messages />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

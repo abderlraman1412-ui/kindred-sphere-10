@@ -16,7 +16,7 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -190,8 +190,11 @@ const Admin = () => {
             <TabsTrigger value="posts"><FileText className="mr-2 h-4 w-4" />Posts</TabsTrigger>
             <TabsTrigger value="compose"><Plus className="mr-2 h-4 w-4" />New post</TabsTrigger>
             <TabsTrigger value="messages"><MessageSquare className="mr-2 h-4 w-4" />Messages</TabsTrigger>
+            <TabsTrigger value="ai"><Sparkles className="mr-2 h-4 w-4" />AI</TabsTrigger>
             <TabsTrigger value="branding"><Palette className="mr-2 h-4 w-4" />Branding</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="ai"><AISettings /></TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

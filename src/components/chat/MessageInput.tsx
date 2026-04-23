@@ -13,15 +13,19 @@ interface Props {
   conversationId: string;
   onSend: (payload: { content?: string; image_url?: string }) => Promise<void>;
   onTyping: () => void;
+  disableImage?: boolean;
+  placeholder?: string;
+  sending?: boolean;
 }
 
-export const MessageInput = ({ conversationId, onSend, onTyping }: Props) => {
+export const MessageInput = ({ conversationId, onSend, onTyping, disableImage, placeholder, sending: externalSending }: Props) => {
   const { user } = useAuth();
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [internalSending, setInternalSending] = useState(false);
+  const sending = externalSending || internalSending;
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async () => {

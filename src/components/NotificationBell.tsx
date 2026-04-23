@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Bell, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
@@ -21,6 +22,7 @@ export const NotificationBell = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+  const firstLoadRef = useRef(true);
 
   const unread = items.filter((i) => !i.read).length;
 
@@ -36,13 +38,33 @@ export const NotificationBell = () => {
 
   useEffect(() => {
     if (!user) return;
-    load();
+    void load().then(() => { firstLoadRef.current = false; });
     const channel = supabase
       .channel("notif-" + user.id)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload) => setItems((prev) => [payload.new as Notification, ...prev].slice(0, 20))
+        (payload) => {
+          const n = payload.new as Notification;
+          setItems((prev) => [n, ...prev].slice(0, 20));
+          // Toast + light beep for new messages and other notifications (skip while we're hydrating)
+          if (!firstLoadRef.current) {
+            toast(n.message, {
+              action: n.link ? { label: "Open", onClick: () => navigate(n.link!) } : undefined,
+            });
+            try {
+              const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+              const o = ctx.createOscillator();
+              const g = ctx.createGain();
+              o.connect(g); g.connect(ctx.destination);
+              o.frequency.value = n.type === "message" ? 880 : 660;
+              g.gain.setValueAtTime(0.0001, ctx.currentTime);
+              g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+              g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+              o.start(); o.stop(ctx.currentTime + 0.2);
+            } catch { /* audio not allowed */ }
+          }
+        }
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };

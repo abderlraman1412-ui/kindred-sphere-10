@@ -7,16 +7,18 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut } from "lucide-react";
+import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, MessageSquare } from "lucide-react";
 import { TierBadge } from "@/components/TierBadge";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandLogo } from "@/components/BrandLogo";
+import { useUnreadCount } from "@/hooks/useUnreadCount";
 
 const navItems = [
   { to: "/", label: "Feed", icon: Home, end: true },
   { to: "/text", label: "Text", icon: FileText },
   { to: "/images", label: "Images", icon: ImageIcon },
   { to: "/videos", label: "Videos", icon: Video },
+  { to: "/messages", label: "Chat", icon: MessageSquare },
 ];
 
 export const AppLayout = () => {
@@ -24,6 +26,7 @@ export const AppLayout = () => {
   const { theme, toggle } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const unreadChats = useUnreadCount();
 
   const initials = profile?.name?.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase() ?? "U";
 
@@ -36,16 +39,22 @@ export const AppLayout = () => {
           <nav className="ml-2 hidden items-center gap-1 md:flex">
             {navItems.map((n) => {
               const active = n.end ? location.pathname === n.to : location.pathname.startsWith(n.to);
+              const showBadge = n.to === "/messages" && unreadChats > 0;
               return (
                 <Link
                   key={n.to}
                   to={n.to}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                  className={`relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                     active ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   <n.icon className="h-4 w-4" />
                   {n.label}
+                  {showBadge && (
+                    <span className="ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                      {unreadChats > 9 ? "9+" : unreadChats}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -118,16 +127,22 @@ export const AppLayout = () => {
         <nav className="flex items-center justify-around border-t md:hidden">
           {navItems.map((n) => {
             const active = n.end ? location.pathname === n.to : location.pathname.startsWith(n.to);
+            const showBadge = n.to === "/messages" && unreadChats > 0;
             return (
               <Link
                 key={n.to}
                 to={n.to}
-                className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] ${
+                className={`relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 <n.icon className="h-5 w-5" />
                 {n.label}
+                {showBadge && (
+                  <span className="absolute right-3 top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                    {unreadChats > 9 ? "9+" : unreadChats}
+                  </span>
+                )}
               </Link>
             );
           })}

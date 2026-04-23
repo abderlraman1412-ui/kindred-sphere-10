@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useConversations } from "@/hooks/useConversations";
 import { usePresence } from "@/hooks/usePresence";
+import { useAuth } from "@/contexts/AuthContext";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { NewChatDialog } from "@/components/chat/NewChatDialog";
 import { MessageSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { AI_USER_ID } from "@/lib/aiAssistant";
+import { toast } from "sonner";
 
 const Messages = () => {
-  const { items, loading } = useConversations();
+  const { user } = useAuth();
+  const { items, loading, reload } = useConversations();
   const onlineIds = usePresence();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeId, setActiveId] = useState<string | null>(searchParams.get("c"));
@@ -21,6 +26,20 @@ const Messages = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  // Ensure the AI conversation always exists for this user
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      const { error } = await supabase.rpc("get_or_create_conversation", { _other_user: AI_USER_ID });
+      if (error) {
+        console.error("Failed to ensure AI conversation:", error);
+        return;
+      }
+      void reload();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   const select = (id: string) => {
     setActiveId(id);
     setSearchParams({ c: id }, { replace: true });
@@ -29,6 +48,15 @@ const Messages = () => {
   const back = () => {
     setActiveId(null);
     setSearchParams({}, { replace: true });
+  };
+
+  const startWithUser = async (otherId: string) => {
+    const { data, error } = await supabase.rpc("get_or_create_conversation", { _other_user: otherId });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    select(data as string);
   };
 
   const active = items.find((c) => c.id === activeId);
@@ -45,6 +73,11 @@ const Messages = () => {
             onlineIds={onlineIds}
             onSelect={select}
             onNewChat={() => setNewOpen(true)}
+            onChatWithAI={() => {
+              const aiConv = items.find((c) => c.other.id === AI_USER_ID);
+              if (aiConv) select(aiConv.id);
+              else void startWithUser(AI_USER_ID);
+            }}
           />
         </div>
 

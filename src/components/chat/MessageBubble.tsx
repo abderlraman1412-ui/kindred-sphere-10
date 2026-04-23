@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Check, CheckCheck, Trash2 } from "lucide-react";
+import { Check, CheckCheck, Trash2, Sparkles } from "lucide-react";
 import type { ChatMessage } from "@/hooks/useMessages";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 interface Props {
   message: ChatMessage;
   isOwn: boolean;
+  fromAI?: boolean;
   canDelete?: boolean;
   onDelete?: (id: string) => void;
 }
 
-export const MessageBubble = ({ message, isOwn, canDelete, onDelete }: Props) => {
+export const MessageBubble = ({ message, isOwn, fromAI, canDelete, onDelete }: Props) => {
   const deleted = !!message.deleted_at;
 
   return (
@@ -22,10 +23,18 @@ export const MessageBubble = ({ message, isOwn, canDelete, onDelete }: Props) =>
             "relative rounded-2xl px-3 py-2 text-sm shadow-sm transition-all",
             isOwn
               ? "rounded-br-md bg-primary text-primary-foreground"
-              : "rounded-bl-md bg-muted text-foreground",
+              : fromAI
+                ? "rounded-bl-md border border-primary/20 bg-gradient-to-br from-primary/10 to-accent/40 text-foreground"
+                : "rounded-bl-md bg-muted text-foreground",
             deleted && "italic opacity-60",
           )}
         >
+          {fromAI && !deleted && (
+            <div className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-primary">
+              <Sparkles className="h-3 w-3" />
+              TAIPING AI
+            </div>
+          )}
           {deleted ? (
             <span>Message deleted</span>
           ) : (

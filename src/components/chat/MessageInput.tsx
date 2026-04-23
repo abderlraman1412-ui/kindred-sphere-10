@@ -13,28 +13,32 @@ interface Props {
   conversationId: string;
   onSend: (payload: { content?: string; image_url?: string }) => Promise<void>;
   onTyping: () => void;
+  disableImage?: boolean;
+  placeholder?: string;
+  sending?: boolean;
 }
 
-export const MessageInput = ({ conversationId, onSend, onTyping }: Props) => {
+export const MessageInput = ({ conversationId, onSend, onTyping, disableImage, placeholder, sending: externalSending }: Props) => {
   const { user } = useAuth();
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [internalSending, setInternalSending] = useState(false);
+  const sending = externalSending || internalSending;
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = async () => {
     const trimmed = text.trim();
     if (!trimmed && !imageUrl) return;
-    setSending(true);
+    setInternalSending(true);
     try {
       await onSend({ content: trimmed || undefined, image_url: imageUrl || undefined });
       setText("");
       setImagePreview(null);
       setImageUrl(null);
     } finally {
-      setSending(false);
+      setInternalSending(false);
     }
   };
 
@@ -97,16 +101,18 @@ export const MessageInput = ({ conversationId, onSend, onTyping }: Props) => {
           className="hidden"
           onChange={handleFile}
         />
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          aria-label="Attach image"
-        >
-          <ImageIcon className="h-5 w-5" />
-        </Button>
+        {!disableImage && (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            aria-label="Attach image"
+          >
+            <ImageIcon className="h-5 w-5" />
+          </Button>
+        )}
         <Popover>
           <PopoverTrigger asChild>
             <Button type="button" size="icon" variant="ghost" aria-label="Emoji">
@@ -129,9 +135,10 @@ export const MessageInput = ({ conversationId, onSend, onTyping }: Props) => {
           value={text}
           onChange={(e) => { setText(e.target.value); onTyping(); }}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message"
+          placeholder={placeholder ?? "Type a message"}
           rows={1}
           className="min-h-10 max-h-32 resize-none"
+          disabled={sending}
         />
         <Button
           type="button"

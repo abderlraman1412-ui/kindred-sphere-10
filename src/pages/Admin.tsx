@@ -22,6 +22,7 @@ import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";
 import { BrandingSettings } from "@/components/BrandingSettings";
 import { AdminMessages } from "@/components/AdminMessages";
+import { AISettings } from "@/components/AISettings";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
 type PostType = "text" | "image" | "video";

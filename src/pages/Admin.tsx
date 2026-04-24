@@ -170,6 +170,9 @@ const Admin = () => {
           <Link to="/" className="ml-auto flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to app
           </Link>
+          <Link to="/admin/profile" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <Users className="h-4 w-4" /> My profile
+          </Link>
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4 text-success" />
             <span className="text-sm font-semibold">Admin Portal</span>

@@ -128,6 +128,29 @@ const Admin = () => {
     const max = composerType === "video" ? 100 : 10;
     if (file.size > max * 1024 * 1024) { toast.error(`Max ${max} MB`); return; }
     setUploading(true);
+    setComposerDuration(null);
+
+    // Detect video duration locally before upload
+    let duration: number | null = null;
+    if (composerType === "video") {
+      try {
+        duration = await new Promise<number>((resolve, reject) => {
+          const v = document.createElement("video");
+          v.preload = "metadata";
+          v.onloadedmetadata = () => {
+            const d = isFinite(v.duration) ? Math.round(v.duration) : 0;
+            URL.revokeObjectURL(v.src);
+            resolve(d);
+          };
+          v.onerror = () => { URL.revokeObjectURL(v.src); reject(new Error("Could not read video metadata")); };
+          v.src = URL.createObjectURL(file);
+        });
+        setComposerDuration(duration);
+      } catch {
+        // Non-fatal; reel detection just falls back to normal video
+      }
+    }
+
     const ext = file.name.split(".").pop() || "bin";
     const path = `${user.id}/${composerType}-${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage.from("media").upload(path, file);
@@ -135,7 +158,15 @@ const Admin = () => {
     const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
     setComposerMediaUrl(pub.publicUrl);
     setUploading(false);
-    toast.success("Uploaded");
+    if (composerType === "video" && duration !== null) {
+      toast.success(
+        duration <= REEL_MAX_SECONDS
+          ? `Uploaded · Reel (${duration}s)`
+          : `Uploaded · Video (${Math.floor(duration / 60)}m ${duration % 60}s)`
+      );
+    } else {
+      toast.success("Uploaded");
+    }
   };
 
   const submitPost = async (e: React.FormEvent) => {

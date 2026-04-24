@@ -7,7 +7,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, MessageSquare } from "lucide-react";
+import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, MessageSquare, Play } from "lucide-react";
 import { TierBadge } from "@/components/TierBadge";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -18,6 +18,7 @@ const navItems = [
   { to: "/text", label: "Text", icon: FileText },
   { to: "/images", label: "Images", icon: ImageIcon },
   { to: "/videos", label: "Videos", icon: Video },
+  { to: "/reels", label: "Reels", icon: Play },
   { to: "/messages", label: "Chat", icon: MessageSquare },
 ];
 

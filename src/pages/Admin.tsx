@@ -57,6 +57,9 @@ const Admin = () => {
   const [composerVisibility, setComposerVisibility] = useState<Tier>("normal");
   const [composerContent, setComposerContent] = useState("");
   const [composerMediaUrl, setComposerMediaUrl] = useState("");
+  const [composerDuration, setComposerDuration] = useState<number | null>(null);
+
+  const REEL_MAX_SECONDS = 180; // 3 minutes
 
   const loadAll = async () => {
     setLoading(true);

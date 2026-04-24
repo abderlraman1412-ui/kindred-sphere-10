@@ -11,14 +11,15 @@ import { AdminBadge } from "@/components/AdminBadge";
 import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import { Loader2, Camera, ArrowLeft, KeyRound, LogOut, ShieldCheck, Save } from "lucide-react";
+import { useEffect } from "react";
 
 const nameSchema = z.string().trim().min(2, "Name too short").max(60, "Name too long");
 const passwordSchema = z.string().min(8, "Password must be at least 8 characters").max(128);
 
 const AdminProfile = () => {
-  const { user, profile, refreshProfile, signOut } = useAuth();
+  const { user, profile, loading, refreshProfile, signOut } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState(profile?.name ?? "");
+  const [name, setName] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -26,7 +27,17 @@ const AdminProfile = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [savingPwd, setSavingPwd] = useState(false);
 
-  if (!profile || !user) return null;
+  useEffect(() => {
+    if (profile?.name) setName(profile.name);
+  }, [profile?.name]);
+
+  if (loading || !profile || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const initials = profile.name
     ?.split(" ")

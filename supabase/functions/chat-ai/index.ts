@@ -42,6 +42,47 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
+    // ===== Fixed identity / contact response (no API call) =====
+    const FIXED_REPLY = `اسم رئيس الشركة: الأستاذ سيد أبوبكر عبدالله
+
+رئيس المبرمجين في الشركة والذي قام ببناء هذا الموقع: عبدالرحمن سيد أبوبكر عبدالله
+
+المركز يوفر:
+
+تعلم الكتابة السريعة على الكيبورد باللغة العربية
+
+وتعلم برنامج Word
+
+وذلك بإشراف مدير المركز الأستاذ سيد وابنه عبدالرحمن
+
+📞 رقم الواتساب: 01121259071
+
+📞 رقم الهاتف: 01007654158
+
+📍 العنوان:
+
+قرية القطوري
+
+مركز العياط
+
+محافظة الجيزة
+
+بجوار مكتبة أسيل أو رضا الحلاق أو أبو حليم`;
+
+    const normalized = userMessage.toLowerCase();
+    const KEYWORDS = [
+      // Arabic
+      "تايبينج", "تايبنج", "من أنشأ", "من انشأ", "من أنشأك", "من انشأك",
+      "صاحب الموقع", "صاحب المنصة", "معلومات عن الموقع", "معلومات عن المنصة",
+      "رقم التواصل", "رقم الواتساب", "رقم الهاتف", "العنوان", "المركز",
+      "من بنى", "من صمم", "مين عمل", "مين أنشأ", "مين بنى",
+      // English
+      "taiping", "who created", "who built", "who made", "who owns",
+      "contact", "location", "address", "platform info", "about the platform",
+      "about this site", "about taiping",
+    ];
+    const matched = KEYWORDS.some((k) => normalized.includes(k.toLowerCase()));
+
     // Verify the conversation exists, includes the AI, and includes this user
     const { data: conv, error: convErr } = await admin
       .from("conversations")
@@ -89,6 +130,17 @@ Deno.serve(async (req) => {
     await admin
       .from("ai_usage")
       .upsert({ user_id: userId, day: today, count: used + 1 }, { onConflict: "user_id,day" });
+
+    // Short-circuit: identity / contact info — return fixed reply without calling AI
+    if (matched) {
+      const { error: fxErr } = await admin.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: AI_USER_ID,
+        content: FIXED_REPLY,
+      });
+      if (fxErr) return json({ error: fxErr.message }, 500);
+      return json({ reply: FIXED_REPLY, remaining: Math.max(dailyLimit - (used + 1), 0) }, 200);
+    }
 
     // Pull last 12 messages for context
     const { data: history } = await admin

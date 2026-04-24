@@ -384,7 +384,7 @@ const Admin = () => {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label>Type</Label>
-                      <Select value={composerType} onValueChange={(v) => { setComposerType(v as PostType); setComposerMediaUrl(""); }}>
+                      <Select value={composerType} onValueChange={(v) => { setComposerType(v as PostType); setComposerMediaUrl(""); setComposerDuration(null); }}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="text">Text</SelectItem>

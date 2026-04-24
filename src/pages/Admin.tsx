@@ -426,12 +426,29 @@ const Admin = () => {
                         onChange={onMediaUpload}
                         disabled={uploading}
                       />
+                      {composerType === "video" && (
+                        <p className="text-xs text-muted-foreground">
+                          Videos ≤ 3 minutes are auto-published as <span className="font-semibold text-primary">Reels</span>.
+                        </p>
+                      )}
                       {uploading && <p className="text-xs text-muted-foreground"><Loader2 className="inline h-3 w-3 animate-spin" /> Uploading…</p>}
                       {composerMediaUrl && composerType === "image" && (
                         <img src={composerMediaUrl} alt="preview" className="max-h-60 rounded-lg border" />
                       )}
                       {composerMediaUrl && composerType === "video" && (
-                        <video src={composerMediaUrl} controls className="max-h-60 rounded-lg border" />
+                        <>
+                          <video src={composerMediaUrl} controls className="max-h-60 rounded-lg border" />
+                          {composerDuration !== null && (
+                            <p className="text-xs">
+                              Duration: <span className="font-medium">{Math.floor(composerDuration / 60)}m {composerDuration % 60}s</span>
+                              {composerDuration <= REEL_MAX_SECONDS ? (
+                                <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">Reel</span>
+                              ) : (
+                                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">Video</span>
+                              )}
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

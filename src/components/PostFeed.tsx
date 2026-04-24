@@ -49,7 +49,11 @@ export const PostFeed = ({ filterType }: { filterType?: "text" | "image" | "vide
         .select("*")
         .order("created_at", { ascending: false })
         .limit(PAGE);
-      if (filterType) q = q.eq("type", filterType);
+      if (filterType) {
+        q = q.eq("type", filterType);
+        // Reels are shown only on /reels — exclude them from the regular video feed
+        if (filterType === "video") q = q.eq("is_reel", false);
+      }
       if (cursor) q = q.lt("created_at", cursor);
       const { data, error } = await q;
       if (error) { toast.error(error.message); return [] as PostRow[]; }
@@ -76,8 +80,9 @@ export const PostFeed = ({ filterType }: { filterType?: "text" | "image" | "vide
     const channel = supabase
       .channel("posts-feed-" + (filterType ?? "all"))
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "posts" }, async (payload) => {
-        const np = payload.new as PostRow;
+        const np = payload.new as PostRow & { is_reel?: boolean };
         if (filterType && np.type !== filterType) return;
+        if (filterType === "video" && np.is_reel) return;
         const enriched = await enrich([np]);
         setPosts((prev) => [enriched[0], ...prev]);
       })

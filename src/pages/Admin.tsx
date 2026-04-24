@@ -57,6 +57,9 @@ const Admin = () => {
   const [composerVisibility, setComposerVisibility] = useState<Tier>("normal");
   const [composerContent, setComposerContent] = useState("");
   const [composerMediaUrl, setComposerMediaUrl] = useState("");
+  const [composerDuration, setComposerDuration] = useState<number | null>(null);
+
+  const REEL_MAX_SECONDS = 180; // 3 minutes
 
   const loadAll = async () => {
     setLoading(true);
@@ -125,6 +128,29 @@ const Admin = () => {
     const max = composerType === "video" ? 100 : 10;
     if (file.size > max * 1024 * 1024) { toast.error(`Max ${max} MB`); return; }
     setUploading(true);
+    setComposerDuration(null);
+
+    // Detect video duration locally before upload
+    let duration: number | null = null;
+    if (composerType === "video") {
+      try {
+        duration = await new Promise<number>((resolve, reject) => {
+          const v = document.createElement("video");
+          v.preload = "metadata";
+          v.onloadedmetadata = () => {
+            const d = isFinite(v.duration) ? Math.round(v.duration) : 0;
+            URL.revokeObjectURL(v.src);
+            resolve(d);
+          };
+          v.onerror = () => { URL.revokeObjectURL(v.src); reject(new Error("Could not read video metadata")); };
+          v.src = URL.createObjectURL(file);
+        });
+        setComposerDuration(duration);
+      } catch {
+        // Non-fatal; reel detection just falls back to normal video
+      }
+    }
+
     const ext = file.name.split(".").pop() || "bin";
     const path = `${user.id}/${composerType}-${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage.from("media").upload(path, file);
@@ -132,7 +158,15 @@ const Admin = () => {
     const { data: pub } = supabase.storage.from("media").getPublicUrl(path);
     setComposerMediaUrl(pub.publicUrl);
     setUploading(false);
-    toast.success("Uploaded");
+    if (composerType === "video" && duration !== null) {
+      toast.success(
+        duration <= REEL_MAX_SECONDS
+          ? `Uploaded · Reel (${duration}s)`
+          : `Uploaded · Video (${Math.floor(duration / 60)}m ${duration % 60}s)`
+      );
+    } else {
+      toast.success("Uploaded");
+    }
   };
 
   const submitPost = async (e: React.FormEvent) => {
@@ -146,18 +180,21 @@ const Admin = () => {
     if (composerType !== "text" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
     if (composerType === "text" && !composerContent.trim()) { toast.error("Write something"); return; }
     setPosting(true);
+    const isReel = composerType === "video" && composerDuration !== null && composerDuration <= REEL_MAX_SECONDS;
     const { data, error } = await supabase.from("posts").insert({
       author_id: user.id,
       type: composerType,
       visibility: composerVisibility,
       content: composerContent.trim() || null,
       media_url: composerMediaUrl || null,
+      is_reel: isReel,
+      duration_seconds: composerType === "video" ? composerDuration : null,
     }).select().single();
     setPosting(false);
     if (error) toast.error(error.message);
     else {
-      toast.success("Post published");
-      setComposerContent(""); setComposerMediaUrl("");
+      toast.success(isReel ? "Reel published 🎬" : "Post published");
+      setComposerContent(""); setComposerMediaUrl(""); setComposerDuration(null);
       setPosts((prev) => [{ ...(data as AdminPost), author: { name: "You" } }, ...prev]);
     }
   };
@@ -347,7 +384,7 @@ const Admin = () => {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <Label>Type</Label>
-                      <Select value={composerType} onValueChange={(v) => { setComposerType(v as PostType); setComposerMediaUrl(""); }}>
+                      <Select value={composerType} onValueChange={(v) => { setComposerType(v as PostType); setComposerMediaUrl(""); setComposerDuration(null); }}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="text">Text</SelectItem>
@@ -389,12 +426,29 @@ const Admin = () => {
                         onChange={onMediaUpload}
                         disabled={uploading}
                       />
+                      {composerType === "video" && (
+                        <p className="text-xs text-muted-foreground">
+                          Videos ≤ 3 minutes are auto-published as <span className="font-semibold text-primary">Reels</span>.
+                        </p>
+                      )}
                       {uploading && <p className="text-xs text-muted-foreground"><Loader2 className="inline h-3 w-3 animate-spin" /> Uploading…</p>}
                       {composerMediaUrl && composerType === "image" && (
                         <img src={composerMediaUrl} alt="preview" className="max-h-60 rounded-lg border" />
                       )}
                       {composerMediaUrl && composerType === "video" && (
-                        <video src={composerMediaUrl} controls className="max-h-60 rounded-lg border" />
+                        <>
+                          <video src={composerMediaUrl} controls className="max-h-60 rounded-lg border" />
+                          {composerDuration !== null && (
+                            <p className="text-xs">
+                              Duration: <span className="font-medium">{Math.floor(composerDuration / 60)}m {composerDuration % 60}s</span>
+                              {composerDuration <= REEL_MAX_SECONDS ? (
+                                <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">Reel</span>
+                              ) : (
+                                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">Video</span>
+                              )}
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   )}

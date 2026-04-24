@@ -131,6 +131,17 @@ Deno.serve(async (req) => {
       .from("ai_usage")
       .upsert({ user_id: userId, day: today, count: used + 1 }, { onConflict: "user_id,day" });
 
+    // Short-circuit: identity / contact info — return fixed reply without calling AI
+    if (matched) {
+      const { error: fxErr } = await admin.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: AI_USER_ID,
+        content: FIXED_REPLY,
+      });
+      if (fxErr) return json({ error: fxErr.message }, 500);
+      return json({ reply: FIXED_REPLY, remaining: Math.max(dailyLimit - (used + 1), 0) }, 200);
+    }
+
     // Pull last 12 messages for context
     const { data: history } = await admin
       .from("messages")

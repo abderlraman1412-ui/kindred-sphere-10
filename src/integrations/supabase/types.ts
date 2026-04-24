@@ -361,6 +361,27 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["account_tier"]
       }
+      ensure_my_profile: {
+        Args: never
+        Returns: {
+          avatar_url: string | null
+          banned: boolean
+          bio: string | null
+          created_at: string
+          email: string | null
+          id: string
+          last_seen: string | null
+          name: string
+          tier: Database["public"]["Enums"]["account_tier"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_or_create_conversation: {
         Args: { _other_user: string }
         Returns: string

@@ -35,10 +35,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loadProfile = async (uid: string) => {
     setLoading(true);
-    const [{ data: p, error: profileError }, { data: roles, error: roleError }] = await Promise.all([
+    let [{ data: p, error: profileError }, { data: roles, error: roleError }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
+
+    if (!p && !profileError) {
+      const { data: ensured, error: ensureError } = await supabase.rpc("ensure_my_profile");
+      if (ensureError) {
+        console.error("Failed to ensure profile", ensureError);
+      } else {
+        p = ensured;
+      }
+    }
 
     if (profileError) {
       console.error("Failed to load profile", profileError);

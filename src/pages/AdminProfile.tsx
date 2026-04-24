@@ -31,10 +31,23 @@ const AdminProfile = () => {
     if (profile?.name) setName(profile.name);
   }, [profile?.name]);
 
-  if (loading || !profile || !user) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!profile || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-6">
+        <div className="max-w-sm text-center">
+          <p className="text-sm text-muted-foreground">Couldn't load the admin profile right now.</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }

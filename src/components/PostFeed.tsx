@@ -80,8 +80,9 @@ export const PostFeed = ({ filterType }: { filterType?: "text" | "image" | "vide
     const channel = supabase
       .channel("posts-feed-" + (filterType ?? "all"))
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "posts" }, async (payload) => {
-        const np = payload.new as PostRow;
+        const np = payload.new as PostRow & { is_reel?: boolean };
         if (filterType && np.type !== filterType) return;
+        if (filterType === "video" && np.is_reel) return;
         const enriched = await enrich([np]);
         setPosts((prev) => [enriched[0], ...prev]);
       })

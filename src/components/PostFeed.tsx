@@ -49,7 +49,11 @@ export const PostFeed = ({ filterType }: { filterType?: "text" | "image" | "vide
         .select("*")
         .order("created_at", { ascending: false })
         .limit(PAGE);
-      if (filterType) q = q.eq("type", filterType);
+      if (filterType) {
+        q = q.eq("type", filterType);
+        // Reels are shown only on /reels — exclude them from the regular video feed
+        if (filterType === "video") q = q.eq("is_reel", false);
+      }
       if (cursor) q = q.lt("created_at", cursor);
       const { data, error } = await q;
       if (error) { toast.error(error.message); return [] as PostRow[]; }

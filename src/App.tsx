@@ -15,6 +15,7 @@ import TextPosts from "./pages/TextPosts.tsx";
 import ImagePosts from "./pages/ImagePosts.tsx";
 import VideoPosts from "./pages/VideoPosts.tsx";
 import Admin from "./pages/Admin.tsx";
+import AdminProfile from "./pages/AdminProfile.tsx";
 import CreatePost from "./pages/CreatePost.tsx";
 import Messages from "./pages/Messages.tsx";
 import NotFound from "./pages/NotFound.tsx";
@@ -37,6 +38,14 @@ const App = () => (
                 element={
                   <ProtectedRoute requireAdmin>
                     <Admin />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/profile"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminProfile />
                   </ProtectedRoute>
                 }
               />

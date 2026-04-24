@@ -180,18 +180,21 @@ const Admin = () => {
     if (composerType !== "text" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
     if (composerType === "text" && !composerContent.trim()) { toast.error("Write something"); return; }
     setPosting(true);
+    const isReel = composerType === "video" && composerDuration !== null && composerDuration <= REEL_MAX_SECONDS;
     const { data, error } = await supabase.from("posts").insert({
       author_id: user.id,
       type: composerType,
       visibility: composerVisibility,
       content: composerContent.trim() || null,
       media_url: composerMediaUrl || null,
+      is_reel: isReel,
+      duration_seconds: composerType === "video" ? composerDuration : null,
     }).select().single();
     setPosting(false);
     if (error) toast.error(error.message);
     else {
-      toast.success("Post published");
-      setComposerContent(""); setComposerMediaUrl("");
+      toast.success(isReel ? "Reel published 🎬" : "Post published");
+      setComposerContent(""); setComposerMediaUrl(""); setComposerDuration(null);
       setPosts((prev) => [{ ...(data as AdminPost), author: { name: "You" } }, ...prev]);
     }
   };

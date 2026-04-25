@@ -438,6 +438,11 @@ const ReelItem = ({
           onClick={onComment}
         />
         <ActionButton icon={<Share2 className="h-6 w-6" />} label="Share" onClick={onShare} />
+        <ActionButton
+          icon={<Bookmark className={`h-6 w-6 ${reel.bookmarked_by_me ? "fill-current text-warning" : ""}`} />}
+          label={reel.bookmarked_by_me ? "Saved" : "Save"}
+          onClick={onFavorite}
+        />
         {isAdmin && (
           <>
             <ActionButton

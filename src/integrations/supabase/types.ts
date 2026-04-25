@@ -311,6 +311,41 @@ export type Database = {
         }
         Relationships: []
       }
+      ratings: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ratings_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           ai_daily_limit: number
@@ -415,7 +450,7 @@ export type Database = {
     Enums: {
       account_tier: "normal" | "premium" | "pro" | "vip"
       app_role: "admin" | "user"
-      post_type: "text" | "image" | "video"
+      post_type: "text" | "image" | "video" | "rating"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -545,7 +580,7 @@ export const Constants = {
     Enums: {
       account_tier: ["normal", "premium", "pro", "vip"],
       app_role: ["admin", "user"],
-      post_type: ["text", "image", "video"],
+      post_type: ["text", "image", "video", "rating"],
     },
   },
 } as const

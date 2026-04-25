@@ -61,12 +61,15 @@ const Reels = () => {
     if (rows.length === 0) return [];
     const ids = rows.map((r) => r.id);
     const authorIds = Array.from(new Set(rows.map((r) => r.author_id)));
-    const [{ data: profs }, { data: likes }, { data: comments }, mineRes] = await Promise.all([
+    const [{ data: profs }, { data: likes }, { data: comments }, mineRes, favRes] = await Promise.all([
       supabase.from("profiles").select("id, name, avatar_url, tier").in("id", authorIds),
       supabase.from("likes").select("post_id").in("post_id", ids),
       supabase.from("comments").select("post_id").in("post_id", ids),
       user
         ? supabase.from("likes").select("post_id").eq("user_id", user.id).in("post_id", ids)
+        : Promise.resolve({ data: [] as any[] }),
+      user
+        ? supabase.from("favorite_reels").select("post_id").eq("user_id", user.id).in("post_id", ids)
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
@@ -75,6 +78,7 @@ const Reels = () => {
     const ccount = new Map<string, number>();
     (comments ?? []).forEach((c: any) => ccount.set(c.post_id, (ccount.get(c.post_id) ?? 0) + 1));
     const mineSet = new Set((mineRes.data ?? []).map((l: any) => l.post_id));
+    const favSet = new Set((favRes.data ?? []).map((f: any) => f.post_id));
     return rows.map((r: any) => ({
       id: r.id,
       author_id: r.author_id,
@@ -88,6 +92,7 @@ const Reels = () => {
       like_count: lcount.get(r.id) ?? 0,
       comment_count: ccount.get(r.id) ?? 0,
       liked_by_me: mineSet.has(r.id),
+      bookmarked_by_me: favSet.has(r.id),
     }));
   }, [user]);
 

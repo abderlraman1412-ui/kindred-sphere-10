@@ -16,16 +16,17 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";
 import { BrandingSettings } from "@/components/BrandingSettings";
 import { AdminMessages } from "@/components/AdminMessages";
 import { AISettings } from "@/components/AISettings";
+import { StarRating } from "@/components/StarRating";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
-type PostType = "text" | "image" | "video";
+type PostType = "text" | "image" | "video" | "rating";
 
 interface AdminProfile {
   id: string; email: string | null; name: string; avatar_url: string | null;
@@ -38,7 +39,7 @@ interface AdminPost {
 }
 
 const postSchema = z.object({
-  type: z.enum(["text", "image", "video"]),
+  type: z.enum(["text", "image", "video", "rating"]),
   visibility: z.enum(["normal", "premium", "pro", "vip"]),
   content: z.string().trim().max(5000).optional(),
   media_url: z.string().trim().max(2000).optional(),
@@ -177,8 +178,9 @@ const Admin = () => {
       content: composerContent, media_url: composerMediaUrl || undefined,
     });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
-    if (composerType !== "text" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
+    if (composerType !== "text" && composerType !== "rating" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
     if (composerType === "text" && !composerContent.trim()) { toast.error("Write something"); return; }
+    if (composerType === "rating" && !composerContent.trim()) { toast.error("Add a question or topic for the rating"); return; }
     setPosting(true);
     const isReel = composerType === "video" && composerDuration !== null && composerDuration <= REEL_MAX_SECONDS;
     const { data, error } = await supabase.from("posts").insert({
@@ -359,6 +361,7 @@ const Admin = () => {
                         {p.type === "text" && <FileText className="h-4 w-4 text-primary" />}
                         {p.type === "image" && <ImageIcon className="h-4 w-4 text-success" />}
                         {p.type === "video" && <Video className="h-4 w-4 text-warning" />}
+                        {p.type === "rating" && <Star className="h-4 w-4 text-tier-vip" />}
                       </TableCell>
                       <TableCell className="max-w-xs"><p className="truncate text-sm">{p.content ?? p.media_url ?? "—"}</p></TableCell>
                       <TableCell><TierBadge tier={p.visibility} size="xs" /></TableCell>
@@ -390,6 +393,7 @@ const Admin = () => {
                           <SelectItem value="text">Text</SelectItem>
                           <SelectItem value="image">Image</SelectItem>
                           <SelectItem value="video">Video</SelectItem>
+                          <SelectItem value="rating">Rating (1–10 stars)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -408,16 +412,23 @@ const Admin = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Content {composerType !== "text" && <span className="text-xs text-muted-foreground">(optional caption)</span>}</Label>
+                    <Label>
+                      {composerType === "rating" ? "Question / topic" : "Content"}
+                      {composerType !== "text" && composerType !== "rating" && <span className="text-xs text-muted-foreground"> (optional caption)</span>}
+                    </Label>
                     <Textarea
                       value={composerContent}
                       onChange={(e) => setComposerContent(e.target.value.slice(0, 5000))}
                       rows={4}
-                      placeholder={composerType === "text" ? "What's on your mind?" : "Add a caption…"}
+                      placeholder={
+                        composerType === "text" ? "What's on your mind?"
+                        : composerType === "rating" ? "What should people rate? e.g. How useful was this lesson?"
+                        : "Add a caption…"
+                      }
                     />
                   </div>
 
-                  {composerType !== "text" && (
+                  {composerType !== "text" && composerType !== "rating" && (
                     <div className="space-y-2">
                       <Label>{composerType === "image" ? "Image" : "Video"}</Label>
                       <Input

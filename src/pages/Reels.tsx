@@ -232,6 +232,35 @@ const Reels = () => {
     } catch {/* user cancel */}
   };
 
+  const toggleFavorite = async (reel: Reel) => {
+    if (!user) return;
+    const wasFav = reel.bookmarked_by_me;
+    setReels((prev) => prev.map((r) => r.id === reel.id ? { ...r, bookmarked_by_me: !wasFav } : r));
+    if (wasFav) {
+      const { error } = await supabase
+        .from("favorite_reels")
+        .delete()
+        .eq("post_id", reel.id)
+        .eq("user_id", user.id);
+      if (error) {
+        setReels((prev) => prev.map((r) => r.id === reel.id ? { ...r, bookmarked_by_me: true } : r));
+        toast.error(error.message);
+      } else {
+        toast.success("Removed from favorites");
+      }
+    } else {
+      const { error } = await supabase
+        .from("favorite_reels")
+        .insert({ post_id: reel.id, user_id: user.id });
+      if (error) {
+        setReels((prev) => prev.map((r) => r.id === reel.id ? { ...r, bookmarked_by_me: false } : r));
+        toast.error(error.message);
+      } else {
+        toast.success("Added to favorites");
+      }
+    }
+  };
+
   const deleteReel = async (reel: Reel) => {
     if (!confirm("Delete this reel?")) return;
     const { error } = await supabase.from("posts").delete().eq("id", reel.id);

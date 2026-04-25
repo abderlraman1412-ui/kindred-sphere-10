@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
         content: userMessage,
       });
     } catch (e) {
-      console.log("Save user message failed:", e.message);
+      console.log("Save user message failed:", (e instanceof Error ? e.message : String(e)));
     }
 
     // ✅ الرد الثابت
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
           content: FIXED_REPLY,
         });
       } catch (e) {
-        console.log("Save fixed reply failed:", e.message);
+        console.log("Save fixed reply failed:", (e instanceof Error ? e.message : String(e)));
       }
 
       return json({ reply: FIXED_REPLY }, 200);
@@ -175,7 +175,7 @@ Deno.serve(async (req) => {
           "No response from AI";
       }
     } catch (e) {
-      console.log("AI error:", e.message);
+      console.log("AI error:", (e instanceof Error ? e.message : String(e)));
     }
 
     // ✅ حفظ رد AI
@@ -186,13 +186,13 @@ Deno.serve(async (req) => {
         content: reply,
       });
     } catch (e) {
-      console.log("Save AI failed:", e.message);
+      console.log("Save AI failed:", (e instanceof Error ? e.message : String(e)));
     }
 
     return json({ reply }, 200);
   } catch (e) {
     console.error("ERROR:", e);
-    return json({ error: e.message || "Server error" }, 500);
+    return json({ error: (e instanceof Error ? e.message : String(e)) || "Server error" }, 500);
   }
 });
 

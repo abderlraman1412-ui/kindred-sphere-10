@@ -11,7 +11,7 @@ import { useAdminIds } from "@/hooks/useAdminIds";
 import { toast } from "sonner";
 import {
   Heart, MessageCircle, Share2, Trash2, Send,
-  Volume2, VolumeX, Play, Loader2, X, ArrowLeft, Star,
+  Volume2, VolumeX, Play, Loader2, X, ArrowLeft, Star, Bookmark,
 } from "lucide-react";
 
 type Tier = "normal" | "premium" | "pro" | "vip";

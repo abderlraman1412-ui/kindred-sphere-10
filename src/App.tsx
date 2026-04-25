@@ -15,6 +15,7 @@ import TextPosts from "./pages/TextPosts.tsx";
 import ImagePosts from "./pages/ImagePosts.tsx";
 import VideoPosts from "./pages/VideoPosts.tsx";
 import Reels from "./pages/Reels.tsx";
+import Favorites from "./pages/Favorites.tsx";
 import Admin from "./pages/Admin.tsx";
 import AdminProfile from "./pages/AdminProfile.tsx";
 import CreatePost from "./pages/CreatePost.tsx";
@@ -62,6 +63,7 @@ const App = () => (
                 <Route path="/images" element={<ImagePosts />} />
                 <Route path="/videos" element={<VideoPosts />} />
                 <Route path="/reels" element={<Reels />} />
+                <Route path="/favorites" element={<Favorites />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/create-post" element={<CreatePost />} />
                 <Route path="/messages" element={<Messages />} />

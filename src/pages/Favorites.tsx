@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,15 +40,11 @@ interface ReelComment {
   author?: { name: string; avatar_url: string | null };
 }
 
-const PAGE = 5;
-
-const Reels = () => {
+const Favorites = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [reels, setReels] = useState<Reel[]>([]);
   const [loading, setLoading] = useState(true);
-  const [done, setDone] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [openComments, setOpenComments] = useState<string | null>(null);
@@ -61,15 +57,12 @@ const Reels = () => {
     if (rows.length === 0) return [];
     const ids = rows.map((r) => r.id);
     const authorIds = Array.from(new Set(rows.map((r) => r.author_id)));
-    const [{ data: profs }, { data: likes }, { data: comments }, mineRes, favRes] = await Promise.all([
+    const [{ data: profs }, { data: likes }, { data: comments }, mineRes] = await Promise.all([
       supabase.from("profiles").select("id, name, avatar_url, tier").in("id", authorIds),
       supabase.from("likes").select("post_id").in("post_id", ids),
       supabase.from("comments").select("post_id").in("post_id", ids),
       user
         ? supabase.from("likes").select("post_id").eq("user_id", user.id).in("post_id", ids)
-        : Promise.resolve({ data: [] as any[] }),
-      user
-        ? supabase.from("favorite_reels").select("post_id").eq("user_id", user.id).in("post_id", ids)
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const pmap = new Map((profs ?? []).map((p: any) => [p.id, p]));
@@ -78,7 +71,6 @@ const Reels = () => {
     const ccount = new Map<string, number>();
     (comments ?? []).forEach((c: any) => ccount.set(c.post_id, (ccount.get(c.post_id) ?? 0) + 1));
     const mineSet = new Set((mineRes.data ?? []).map((l: any) => l.post_id));
-    const favSet = new Set((favRes.data ?? []).map((f: any) => f.post_id));
     return rows.map((r: any) => ({
       id: r.id,
       author_id: r.author_id,
@@ -92,57 +84,38 @@ const Reels = () => {
       like_count: lcount.get(r.id) ?? 0,
       comment_count: ccount.get(r.id) ?? 0,
       liked_by_me: mineSet.has(r.id),
-      bookmarked_by_me: favSet.has(r.id),
+      bookmarked_by_me: true,
     }));
   }, [user]);
 
-  const fetchPage = useCallback(async (cursor?: string) => {
-    let q = supabase
+  const loadFavorites = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data: favs, error: favErr } = await supabase
+      .from("favorite_reels")
+      .select("post_id, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (favErr) { toast.error(favErr.message); setLoading(false); return; }
+    const postIds = (favs ?? []).map((f: any) => f.post_id);
+    if (postIds.length === 0) { setReels([]); setLoading(false); return; }
+    const { data: posts, error: postErr } = await supabase
       .from("posts")
       .select("*")
-      .eq("type", "video")
-      .eq("is_reel", true)
-      .order("featured", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(PAGE);
-    if (cursor) q = q.lt("created_at", cursor);
-    const { data, error } = await q;
-    if (error) { toast.error(error.message); return [] as Reel[]; }
-    return await enrich(data ?? []);
-  }, [enrich]);
+      .in("id", postIds)
+      .eq("is_reel", true);
+    if (postErr) { toast.error(postErr.message); setLoading(false); return; }
+    // preserve favorite order
+    const order = new Map(postIds.map((id: string, i: number) => [id, i]));
+    const ordered = (posts ?? []).slice().sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+    const enriched = await enrich(ordered);
+    setReels(enriched);
+    setLoading(false);
+  }, [user, enrich]);
 
-  // Initial load
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    fetchPage().then((rows) => {
-      if (!mounted) return;
-      setReels(rows);
-      if (rows.length < PAGE) setDone(true);
-      setLoading(false);
-    });
-    return () => { mounted = false; };
-  }, [fetchPage]);
+  useEffect(() => { void loadFavorites(); }, [loadFavorites]);
 
-  // Realtime: new reels appear at top
-  useEffect(() => {
-    const ch = supabase
-      .channel("reels-feed")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "posts" }, async (p) => {
-        const np = p.new as any;
-        if (np.type !== "video" || !np.is_reel) return;
-        const enriched = await enrich([np]);
-        setReels((prev) => [enriched[0], ...prev]);
-      })
-      .on("postgres_changes", { event: "DELETE", schema: "public", table: "posts" }, (p) => {
-        const oldId = (p.old as any).id;
-        setReels((prev) => prev.filter((r) => r.id !== oldId));
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [enrich]);
-
-  // Snap-scroll observer: detects which reel is active
+  // Snap-scroll observer
   useEffect(() => {
     if (!containerRef.current || reels.length === 0) return;
     const obs = new IntersectionObserver(
@@ -155,7 +128,7 @@ const Reels = () => {
             if (idx !== -1) setActiveIndex(idx);
             if (video) {
               video.muted = muted;
-              video.play().catch(() => {/* autoplay blocked */});
+              video.play().catch(() => {});
             }
           } else if (video) {
             video.pause();
@@ -168,34 +141,6 @@ const Reels = () => {
     itemRefs.current.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
   }, [reels, muted]);
-
-  // Infinite load when nearing the end
-  useEffect(() => {
-    if (done || loading) return;
-    if (activeIndex < reels.length - 2) return;
-    let cancelled = false;
-    (async () => {
-      const last = reels[reels.length - 1];
-      if (!last) return;
-      const more = await fetchPage(last.created_at);
-      if (cancelled) return;
-      if (more.length === 0) { setDone(true); return; }
-      setReels((prev) => {
-        const seen = new Set(prev.map((r) => r.id));
-        return [...prev, ...more.filter((r) => !seen.has(r.id))];
-      });
-      if (more.length < PAGE) setDone(true);
-    })();
-    return () => { cancelled = true; };
-  }, [activeIndex, reels, done, loading, fetchPage]);
-
-  // Honor ?r=<id> deep-link
-  useEffect(() => {
-    const id = searchParams.get("r");
-    if (!id || reels.length === 0) return;
-    const el = itemRefs.current.get(id);
-    if (el) el.scrollIntoView({ behavior: "instant" as ScrollBehavior, block: "start" });
-  }, [searchParams, reels]);
 
   const toggleMute = () => {
     const next = !muted;
@@ -224,6 +169,24 @@ const Reels = () => {
     }
   };
 
+  const removeFavorite = async (reel: Reel) => {
+    if (!user) return;
+    // optimistic remove from list
+    const prevList = reels;
+    setReels((prev) => prev.filter((r) => r.id !== reel.id));
+    const { error } = await supabase
+      .from("favorite_reels")
+      .delete()
+      .eq("post_id", reel.id)
+      .eq("user_id", user.id);
+    if (error) {
+      setReels(prevList);
+      toast.error(error.message);
+    } else {
+      toast.success("Removed from favorites");
+    }
+  };
+
   const share = async (reel: Reel) => {
     const url = `${window.location.origin}/reels?r=${reel.id}`;
     try {
@@ -232,50 +195,11 @@ const Reels = () => {
     } catch {/* user cancel */}
   };
 
-  const toggleFavorite = async (reel: Reel) => {
-    if (!user) return;
-    const wasFav = reel.bookmarked_by_me;
-    setReels((prev) => prev.map((r) => r.id === reel.id ? { ...r, bookmarked_by_me: !wasFav } : r));
-    if (wasFav) {
-      const { error } = await supabase
-        .from("favorite_reels")
-        .delete()
-        .eq("post_id", reel.id)
-        .eq("user_id", user.id);
-      if (error) {
-        setReels((prev) => prev.map((r) => r.id === reel.id ? { ...r, bookmarked_by_me: true } : r));
-        toast.error(error.message);
-      } else {
-        toast.success("Removed from favorites");
-      }
-    } else {
-      const { error } = await supabase
-        .from("favorite_reels")
-        .insert({ post_id: reel.id, user_id: user.id });
-      if (error) {
-        setReels((prev) => prev.map((r) => r.id === reel.id ? { ...r, bookmarked_by_me: false } : r));
-        toast.error(error.message);
-      } else {
-        toast.success("Added to favorites");
-      }
-    }
-  };
-
   const deleteReel = async (reel: Reel) => {
     if (!confirm("Delete this reel?")) return;
     const { error } = await supabase.from("posts").delete().eq("id", reel.id);
     if (error) toast.error(error.message);
     else { toast.success("Reel deleted"); setReels((prev) => prev.filter((r) => r.id !== reel.id)); }
-  };
-
-  const toggleFeatured = async (reel: Reel) => {
-    const next = !reel.featured;
-    const { error } = await supabase.from("posts").update({ featured: next }).eq("id", reel.id);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(next ? "Reel featured" : "Removed from featured");
-      setReels((prev) => prev.map((r) => r.id === reel.id ? { ...r, featured: next } : r));
-    }
   };
 
   if (loading) {
@@ -289,10 +213,13 @@ const Reels = () => {
   if (reels.length === 0) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black p-6 text-center text-white">
-        <Play className="h-14 w-14 opacity-40" />
-        <h2 className="text-lg font-bold">No reels yet</h2>
-        <p className="max-w-xs text-sm opacity-70">Short videos (≤ 3 minutes) posted by admins will appear here.</p>
-        <Button variant="secondary" onClick={() => navigate("/")}>Back to feed</Button>
+        <Bookmark className="h-14 w-14 opacity-40" />
+        <h2 className="text-lg font-bold">No favorites yet</h2>
+        <p className="max-w-xs text-sm opacity-70">Tap the bookmark icon on any reel to save it here for later.</p>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => navigate("/reels")}>Browse Reels</Button>
+          <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => navigate("/")}>Home</Button>
+        </div>
       </div>
     );
   }
@@ -310,7 +237,9 @@ const Reels = () => {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="pointer-events-none text-base font-bold tracking-wide text-white drop-shadow">Reels</h1>
+        <h1 className="pointer-events-none flex items-center gap-1.5 text-base font-bold tracking-wide text-white drop-shadow">
+          <Bookmark className="h-4 w-4 fill-current" /> Favorites
+        </h1>
         <Button
           variant="ghost"
           size="icon"
@@ -322,7 +251,6 @@ const Reels = () => {
         </Button>
       </div>
 
-      {/* Vertical snap scroller */}
       <div
         ref={containerRef}
         className="h-full snap-y snap-mandatory overflow-y-scroll overscroll-contain"
@@ -346,13 +274,11 @@ const Reels = () => {
             onComment={() => setOpenComments(reel.id)}
             onShare={() => share(reel)}
             onDelete={() => deleteReel(reel)}
-            onFeature={() => toggleFeatured(reel)}
-            onFavorite={() => toggleFavorite(reel)}
+            onUnfavorite={() => removeFavorite(reel)}
           />
         ))}
       </div>
 
-      {/* Comments sheet */}
       {openComments && (
         <CommentsSheet
           reelId={openComments}
@@ -368,7 +294,7 @@ const Reels = () => {
 
 const ReelItem = ({
   reel, isAdmin, registerEl, registerVideo, initialMuted,
-  onLike, onComment, onShare, onDelete, onFeature, onFavorite,
+  onLike, onComment, onShare, onDelete, onUnfavorite,
 }: {
   reel: Reel;
   isAdmin: boolean;
@@ -379,8 +305,7 @@ const ReelItem = ({
   onComment: () => void;
   onShare: () => void;
   onDelete: () => void;
-  onFeature: () => void;
-  onFavorite: () => void;
+  onUnfavorite: () => void;
 }) => {
   const [paused, setPaused] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -425,7 +350,6 @@ const ReelItem = ({
         </button>
       )}
 
-      {/* Right-side actions */}
       <div className="absolute bottom-24 right-3 z-10 flex flex-col items-center gap-4">
         <ActionButton
           icon={<Heart className={`h-6 w-6 ${reel.liked_by_me ? "fill-current text-destructive" : ""}`} />}
@@ -439,30 +363,21 @@ const ReelItem = ({
         />
         <ActionButton icon={<Share2 className="h-6 w-6" />} label="Share" onClick={onShare} />
         <ActionButton
-          icon={<Bookmark className={`h-6 w-6 ${reel.bookmarked_by_me ? "fill-current text-warning" : ""}`} />}
-          label={reel.bookmarked_by_me ? "Saved" : "Save"}
-          onClick={onFavorite}
+          icon={<Bookmark className="h-6 w-6 fill-current text-warning" />}
+          label="Saved"
+          onClick={onUnfavorite}
         />
         {isAdmin && (
-          <>
-            <ActionButton
-              icon={<Star className={`h-6 w-6 ${reel.featured ? "fill-current text-warning" : ""}`} />}
-              label={reel.featured ? "Featured" : "Feature"}
-              onClick={onFeature}
-            />
-            <ActionButton icon={<Trash2 className="h-6 w-6 text-destructive" />} label="Delete" onClick={onDelete} />
-          </>
+          <ActionButton icon={<Trash2 className="h-6 w-6 text-destructive" />} label="Delete" onClick={onDelete} />
         )}
       </div>
 
-      {/* Featured ribbon */}
       {reel.featured && (
         <div className="absolute left-3 top-14 z-10 inline-flex items-center gap-1 rounded-full bg-warning/90 px-2 py-0.5 text-[11px] font-bold text-warning-foreground shadow-lg">
           <Star className="h-3 w-3 fill-current" /> Featured
         </div>
       )}
 
-      {/* Bottom info */}
       <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 to-transparent p-4 pb-6 pr-20 text-white">
         <div className="mb-2 flex items-center gap-2">
           <Avatar className="h-9 w-9 ring-2 ring-white/30">
@@ -606,4 +521,4 @@ const CommentsSheet = ({
   );
 };
 
-export default Reels;
+export default Favorites;

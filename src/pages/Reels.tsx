@@ -347,6 +347,7 @@ const Reels = () => {
             onShare={() => share(reel)}
             onDelete={() => deleteReel(reel)}
             onFeature={() => toggleFeatured(reel)}
+            onFavorite={() => toggleFavorite(reel)}
           />
         ))}
       </div>

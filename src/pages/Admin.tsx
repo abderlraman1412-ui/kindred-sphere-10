@@ -464,6 +464,15 @@ const Admin = () => {
                     </div>
                   )}
 
+                  {composerType === "rating" && (
+                    <div className="rounded-lg border bg-muted/30 p-3">
+                      <p className="mb-2 text-xs font-medium text-muted-foreground">Preview · users will see 10 stars to rate</p>
+                      <div className="flex items-center gap-0.5 text-tier-vip">
+                        {Array.from({ length: 10 }).map((_, i) => <Star key={i} className="h-5 w-5" />)}
+                      </div>
+                    </div>
+                  )}
+
                   <Button type="submit" disabled={posting}>
                     {posting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Publish post"}
                   </Button>

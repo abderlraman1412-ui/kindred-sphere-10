@@ -11,11 +11,12 @@ import { useAdminIds } from "@/hooks/useAdminIds";
 import { Heart, MessageCircle, Share2, Trash2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { StarRating } from "@/components/StarRating";
 
 export interface PostRow {
   id: string;
   author_id: string;
-  type: "text" | "image" | "video";
+  type: "text" | "image" | "video" | "rating";
   content: string | null;
   media_url: string | null;
   visibility: "normal" | "premium" | "pro" | "vip";
@@ -154,6 +155,11 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
       )}
       {post.type === "video" && post.media_url && (
         <video src={post.media_url} controls className="max-h-[600px] w-full bg-black" preload="metadata" />
+      )}
+      {post.type === "rating" && (
+        <div className="border-t bg-muted/20 px-4 py-3">
+          <StarRating postId={post.id} />
+        </div>
       )}
 
       <div className="flex items-center justify-between border-t px-2 py-1">

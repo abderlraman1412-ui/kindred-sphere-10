@@ -7,7 +7,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, MessageSquare, Play } from "lucide-react";
+import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, MessageSquare, Play, Bookmark } from "lucide-react";
 import { TierBadge } from "@/components/TierBadge";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandLogo } from "@/components/BrandLogo";

@@ -368,7 +368,7 @@ const Reels = () => {
 
 const ReelItem = ({
   reel, isAdmin, registerEl, registerVideo, initialMuted,
-  onLike, onComment, onShare, onDelete, onFeature,
+  onLike, onComment, onShare, onDelete, onFeature, onFavorite,
 }: {
   reel: Reel;
   isAdmin: boolean;
@@ -380,6 +380,7 @@ const ReelItem = ({
   onShare: () => void;
   onDelete: () => void;
   onFeature: () => void;
+  onFavorite: () => void;
 }) => {
   const [paused, setPaused] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);

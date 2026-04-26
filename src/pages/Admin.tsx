@@ -425,6 +425,7 @@ const Admin = () => {
                           <SelectItem value="image">Image</SelectItem>
                           <SelectItem value="video">Video</SelectItem>
                           <SelectItem value="rating">Rating (1–10 stars)</SelectItem>
+                          <SelectItem value="poll">Poll (voting)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -444,8 +445,10 @@ const Admin = () => {
 
                   <div className="space-y-2">
                     <Label>
-                      {composerType === "rating" ? "Question / topic" : "Content"}
-                      {composerType !== "text" && composerType !== "rating" && <span className="text-xs text-muted-foreground"> (optional caption)</span>}
+                      {composerType === "rating" ? "Question / topic"
+                        : composerType === "poll" ? "Poll question"
+                        : "Content"}
+                      {composerType !== "text" && composerType !== "rating" && composerType !== "poll" && <span className="text-xs text-muted-foreground"> (optional caption)</span>}
                     </Label>
                     <Textarea
                       value={composerContent}
@@ -454,12 +457,13 @@ const Admin = () => {
                       placeholder={
                         composerType === "text" ? "What's on your mind?"
                         : composerType === "rating" ? "What should people rate? e.g. How useful was this lesson?"
+                        : composerType === "poll" ? "What do you want to ask? e.g. Which feature should we build next?"
                         : "Add a caption…"
                       }
                     />
                   </div>
 
-                  {composerType !== "text" && composerType !== "rating" && (
+                  {composerType !== "text" && composerType !== "rating" && composerType !== "poll" && (
                     <div className="space-y-2">
                       <Label>{composerType === "image" ? "Image" : "Video"}</Label>
                       <Input
@@ -501,6 +505,43 @@ const Admin = () => {
                       <div className="flex items-center gap-0.5 text-tier-vip">
                         {Array.from({ length: 10 }).map((_, i) => <Star key={i} className="h-5 w-5" />)}
                       </div>
+                    </div>
+                  )}
+
+                  {composerType === "poll" && (
+                    <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium text-muted-foreground">Poll options (min 2)</Label>
+                        <Button
+                          type="button" variant="ghost" size="sm"
+                          onClick={() => setComposerPollOptions((opts) => opts.length < 10 ? [...opts, ""] : opts)}
+                          disabled={composerPollOptions.length >= 10}
+                        >
+                          <Plus className="mr-1 h-3 w-3" /> Add option
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {composerPollOptions.map((opt, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <Input
+                              value={opt}
+                              maxLength={120}
+                              placeholder={`Option ${i + 1}`}
+                              onChange={(e) => setComposerPollOptions((opts) => opts.map((o, idx) => idx === i ? e.target.value : o))}
+                            />
+                            {composerPollOptions.length > 2 && (
+                              <Button
+                                type="button" variant="ghost" size="icon"
+                                onClick={() => setComposerPollOptions((opts) => opts.filter((_, idx) => idx !== i))}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Each user can vote once. They can change their vote at any time.</p>
                     </div>
                   )}
 

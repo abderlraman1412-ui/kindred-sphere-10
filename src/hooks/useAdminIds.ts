@@ -24,7 +24,7 @@ export const useAdminIds = (userIds: string[]) => {
         .from("user_roles")
         .select("user_id, role")
         .in("user_id", unique)
-        .eq("role", "admin");
+        .in("role", ["admin", "assistant_admin"]);
       if (cancelled) return;
       setAdminIds(new Set((data ?? []).map((r) => r.user_id)));
     })();

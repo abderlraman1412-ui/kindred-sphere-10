@@ -16,7 +16,7 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star, Vote, X,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star, Vote, X, UserCog,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -51,6 +51,8 @@ const Admin = () => {
   const { user } = useAuth();
   const [tab, setTab] = useState("overview");
   const [users, setUsers] = useState<AdminProfile[]>([]);
+  const [assistantAdminIds, setAssistantAdminIds] = useState<Set<string>>(new Set());
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -67,12 +69,15 @@ const Admin = () => {
 
   const loadAll = async () => {
     setLoading(true);
-    const [{ data: u }, { data: p }] = await Promise.all([
+    const [{ data: u }, { data: p }, { data: roles }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("user_roles").select("user_id, role").in("role", ["admin", "assistant_admin"]),
     ]);
     const usersData = (u ?? []) as AdminProfile[];
     setUsers(usersData);
+    setAssistantAdminIds(new Set((roles ?? []).filter((r: any) => r.role === "assistant_admin").map((r: any) => r.user_id)));
+    setAdminIds(new Set((roles ?? []).filter((r: any) => r.role === "admin").map((r: any) => r.user_id)));
     const ids = Array.from(new Set((p ?? []).map((x: any) => x.author_id)));
     const map = new Map(usersData.filter((x) => ids.includes(x.id)).map((x) => [x.id, x]));
     setPosts(((p ?? []) as AdminPost[]).map((post) => ({ ...post, author: { name: map.get(post.author_id)?.name ?? "Unknown" } })));
@@ -124,6 +129,22 @@ const Admin = () => {
     const { error } = await supabase.from("posts").delete().eq("id", p.id);
     if (error) toast.error(error.message);
     else { toast.success("Post deleted"); setPosts((prev) => prev.filter((x) => x.id !== p.id)); }
+  };
+
+  const toggleAssistantAdmin = async (u: AdminProfile) => {
+    if (adminIds.has(u.id)) { toast.error("This user is already a main admin"); return; }
+    const isAssistant = assistantAdminIds.has(u.id);
+    if (isAssistant) {
+      const { error } = await supabase.from("user_roles").delete().eq("user_id", u.id).eq("role", "assistant_admin");
+      if (error) { toast.error(error.message); return; }
+      setAssistantAdminIds((prev) => { const n = new Set(prev); n.delete(u.id); return n; });
+      toast.success("Removed assistant admin");
+    } else {
+      const { error } = await supabase.from("user_roles").insert({ user_id: u.id, role: "assistant_admin" });
+      if (error) { toast.error(error.message); return; }
+      setAssistantAdminIds((prev) => new Set(prev).add(u.id));
+      toast.success("Granted assistant admin");
+    }
   };
 
   const onMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -350,14 +371,32 @@ const Admin = () => {
                         </Select>
                       </TableCell>
                       <TableCell>
-                        {u.banned ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">Banned</span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">Active</span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-1">
+                          {u.banned ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">Banned</span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">Active</span>
+                          )}
+                          {adminIds.has(u.id) && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">Admin</span>
+                          )}
+                          {assistantAdminIds.has(u.id) && !adminIds.has(u.id) && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-tier-pro/15 px-2 py-0.5 text-xs font-semibold text-tier-pro">Asst. Admin</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(u.created_at), { addSuffix: true })}</TableCell>
                       <TableCell className="text-right">
+                        {!adminIds.has(u.id) && (
+                          <Button
+                            size="sm"
+                            variant={assistantAdminIds.has(u.id) ? "default" : "ghost"}
+                            onClick={() => toggleAssistantAdmin(u)}
+                            title={assistantAdminIds.has(u.id) ? "Remove assistant admin" : "Make assistant admin"}
+                          >
+                            <UserCog className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button size="sm" variant={u.banned ? "outline" : "ghost"} onClick={() => toggleBan(u)}>
                           {u.banned ? <ShieldCheck className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />}
                         </Button>

@@ -532,10 +532,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_like: { Args: { _user_id: string }; Returns: boolean }
       is_conversation_member: {
         Args: { _conv_id: string; _uid: string }
         Returns: boolean
       }
+      is_main_admin: { Args: { _user_id: string }; Returns: boolean }
       mark_conversation_read: { Args: { _conv_id: string }; Returns: undefined }
       tier_rank: {
         Args: { t: Database["public"]["Enums"]["account_tier"] }
@@ -544,7 +546,7 @@ export type Database = {
     }
     Enums: {
       account_tier: "normal" | "premium" | "pro" | "vip"
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "assistant_admin"
       post_type: "text" | "image" | "video" | "rating" | "poll"
     }
     CompositeTypes: {
@@ -674,7 +676,7 @@ export const Constants = {
   public: {
     Enums: {
       account_tier: ["normal", "premium", "pro", "vip"],
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "assistant_admin"],
       post_type: ["text", "image", "video", "rating", "poll"],
     },
   },

@@ -69,12 +69,15 @@ const Admin = () => {
 
   const loadAll = async () => {
     setLoading(true);
-    const [{ data: u }, { data: p }] = await Promise.all([
+    const [{ data: u }, { data: p }, { data: roles }] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("user_roles").select("user_id, role").in("role", ["admin", "assistant_admin"]),
     ]);
     const usersData = (u ?? []) as AdminProfile[];
     setUsers(usersData);
+    setAssistantAdminIds(new Set((roles ?? []).filter((r: any) => r.role === "assistant_admin").map((r: any) => r.user_id)));
+    setAdminIds(new Set((roles ?? []).filter((r: any) => r.role === "admin").map((r: any) => r.user_id)));
     const ids = Array.from(new Set((p ?? []).map((x: any) => x.author_id)));
     const map = new Map(usersData.filter((x) => ids.includes(x.id)).map((x) => [x.id, x]));
     setPosts(((p ?? []) as AdminPost[]).map((post) => ({ ...post, author: { name: map.get(post.author_id)?.name ?? "Unknown" } })));

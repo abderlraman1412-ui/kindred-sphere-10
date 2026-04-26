@@ -24,6 +24,7 @@ import { BrandingSettings } from "@/components/BrandingSettings";
 import { AdminMessages } from "@/components/AdminMessages";
 import { AISettings } from "@/components/AISettings";
 import { StarRating } from "@/components/StarRating";
+import { RatingsAdmin } from "@/components/RatingsAdmin";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
 type PostType = "text" | "image" | "video" | "rating";
@@ -232,11 +233,13 @@ const Admin = () => {
             <TabsTrigger value="posts"><FileText className="mr-2 h-4 w-4" />Posts</TabsTrigger>
             <TabsTrigger value="compose"><Plus className="mr-2 h-4 w-4" />New post</TabsTrigger>
             <TabsTrigger value="messages"><MessageSquare className="mr-2 h-4 w-4" />Messages</TabsTrigger>
+            <TabsTrigger value="ratings"><Star className="mr-2 h-4 w-4" />Ratings</TabsTrigger>
             <TabsTrigger value="ai"><Sparkles className="mr-2 h-4 w-4" />AI</TabsTrigger>
             <TabsTrigger value="branding"><Palette className="mr-2 h-4 w-4" />Branding</TabsTrigger>
           </TabsList>
 
           <TabsContent value="ai"><AISettings /></TabsContent>
+          <TabsContent value="ratings"><RatingsAdmin /></TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

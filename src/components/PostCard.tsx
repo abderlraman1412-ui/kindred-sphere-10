@@ -12,11 +12,12 @@ import { Heart, MessageCircle, Share2, Trash2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StarRating } from "@/components/StarRating";
+import { PollWidget } from "@/components/PollWidget";
 
 export interface PostRow {
   id: string;
   author_id: string;
-  type: "text" | "image" | "video" | "rating";
+  type: "text" | "image" | "video" | "rating" | "poll";
   content: string | null;
   media_url: string | null;
   visibility: "normal" | "premium" | "pro" | "vip";
@@ -159,6 +160,11 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
       {post.type === "rating" && (
         <div className="border-t bg-muted/20 px-4 py-3">
           <StarRating postId={post.id} />
+        </div>
+      )}
+      {post.type === "poll" && (
+        <div className="border-t bg-muted/20 px-4 py-3">
+          <PollWidget postId={post.id} />
         </div>
       )}
 

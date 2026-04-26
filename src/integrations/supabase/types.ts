@@ -544,7 +544,7 @@ export type Database = {
     }
     Enums: {
       account_tier: "normal" | "premium" | "pro" | "vip"
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "assistant_admin"
       post_type: "text" | "image" | "video" | "rating" | "poll"
     }
     CompositeTypes: {
@@ -674,7 +674,7 @@ export const Constants = {
   public: {
     Enums: {
       account_tier: ["normal", "premium", "pro", "vip"],
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "assistant_admin"],
       post_type: ["text", "image", "video", "rating", "poll"],
     },
   },

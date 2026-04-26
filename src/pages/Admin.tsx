@@ -181,27 +181,53 @@ const Admin = () => {
       content: composerContent, media_url: composerMediaUrl || undefined,
     });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
-    if (composerType !== "text" && composerType !== "rating" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
+    if (composerType !== "text" && composerType !== "rating" && composerType !== "poll" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
     if (composerType === "text" && !composerContent.trim()) { toast.error("Write something"); return; }
     if (composerType === "rating" && !composerContent.trim()) { toast.error("Add a question or topic for the rating"); return; }
+    if (composerType === "poll") {
+      if (!composerContent.trim()) { toast.error("Add a poll question"); return; }
+      const cleanOpts = composerPollOptions.map((o) => o.trim()).filter(Boolean);
+      if (cleanOpts.length < 2) { toast.error("Add at least 2 options"); return; }
+    }
     setPosting(true);
     const isReel = composerType === "video" && composerDuration !== null && composerDuration <= REEL_MAX_SECONDS;
     const { data, error } = await supabase.from("posts").insert({
       author_id: user.id,
-      type: composerType,
+      type: composerType as any,
       visibility: composerVisibility,
       content: composerContent.trim() || null,
       media_url: composerMediaUrl || null,
       is_reel: isReel,
       duration_seconds: composerType === "video" ? composerDuration : null,
     }).select().single();
-    setPosting(false);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(isReel ? "Reel published 🎬" : "Post published");
-      setComposerContent(""); setComposerMediaUrl(""); setComposerDuration(null);
-      setPosts((prev) => [{ ...(data as AdminPost), author: { name: "You" } }, ...prev]);
+
+    if (error || !data) {
+      setPosting(false);
+      toast.error(error?.message ?? "Failed to publish");
+      return;
     }
+
+    if (composerType === "poll") {
+      const cleanOpts = composerPollOptions.map((o) => o.trim()).filter(Boolean);
+      const rows = cleanOpts.map((text, i) => ({ post_id: data.id, text, position: i }));
+      const { error: optErr } = await (supabase as any).from("poll_options").insert(rows);
+      if (optErr) {
+        // rollback the post if options failed
+        await supabase.from("posts").delete().eq("id", data.id);
+        setPosting(false);
+        toast.error(optErr.message);
+        return;
+      }
+    }
+
+    setPosting(false);
+    toast.success(
+      composerType === "poll" ? "Poll published 🗳️" :
+      isReel ? "Reel published 🎬" : "Post published"
+    );
+    setComposerContent(""); setComposerMediaUrl(""); setComposerDuration(null);
+    setComposerPollOptions(["", ""]);
+    setPosts((prev) => [{ ...(data as AdminPost), author: { name: "You" } }, ...prev]);
   };
 
   return (

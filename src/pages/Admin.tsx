@@ -16,7 +16,7 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star, Vote, X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -25,9 +25,10 @@ import { AdminMessages } from "@/components/AdminMessages";
 import { AISettings } from "@/components/AISettings";
 import { StarRating } from "@/components/StarRating";
 import { RatingsAdmin } from "@/components/RatingsAdmin";
+import { PollAdmin } from "@/components/PollAdmin";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
-type PostType = "text" | "image" | "video" | "rating";
+type PostType = "text" | "image" | "video" | "rating" | "poll";
 
 interface AdminProfile {
   id: string; email: string | null; name: string; avatar_url: string | null;
@@ -40,7 +41,7 @@ interface AdminPost {
 }
 
 const postSchema = z.object({
-  type: z.enum(["text", "image", "video", "rating"]),
+  type: z.enum(["text", "image", "video", "rating", "poll"]),
   visibility: z.enum(["normal", "premium", "pro", "vip"]),
   content: z.string().trim().max(5000).optional(),
   media_url: z.string().trim().max(2000).optional(),
@@ -60,6 +61,7 @@ const Admin = () => {
   const [composerContent, setComposerContent] = useState("");
   const [composerMediaUrl, setComposerMediaUrl] = useState("");
   const [composerDuration, setComposerDuration] = useState<number | null>(null);
+  const [composerPollOptions, setComposerPollOptions] = useState<string[]>(["", ""]);
 
   const REEL_MAX_SECONDS = 180; // 3 minutes
 

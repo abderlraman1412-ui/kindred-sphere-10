@@ -51,6 +51,8 @@ const Admin = () => {
   const { user } = useAuth();
   const [tab, setTab] = useState("overview");
   const [users, setUsers] = useState<AdminProfile[]>([]);
+  const [assistantAdminIds, setAssistantAdminIds] = useState<Set<string>>(new Set());
+  const [adminIds, setAdminIds] = useState<Set<string>>(new Set());
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

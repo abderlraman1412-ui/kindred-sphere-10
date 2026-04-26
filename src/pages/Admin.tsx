@@ -371,14 +371,32 @@ const Admin = () => {
                         </Select>
                       </TableCell>
                       <TableCell>
-                        {u.banned ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">Banned</span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">Active</span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-1">
+                          {u.banned ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">Banned</span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">Active</span>
+                          )}
+                          {adminIds.has(u.id) && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">Admin</span>
+                          )}
+                          {assistantAdminIds.has(u.id) && !adminIds.has(u.id) && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-tier-pro/15 px-2 py-0.5 text-xs font-semibold text-tier-pro">Asst. Admin</span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(u.created_at), { addSuffix: true })}</TableCell>
                       <TableCell className="text-right">
+                        {!adminIds.has(u.id) && (
+                          <Button
+                            size="sm"
+                            variant={assistantAdminIds.has(u.id) ? "default" : "ghost"}
+                            onClick={() => toggleAssistantAdmin(u)}
+                            title={assistantAdminIds.has(u.id) ? "Remove assistant admin" : "Make assistant admin"}
+                          >
+                            <UserCog className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button size="sm" variant={u.banned ? "outline" : "ghost"} onClick={() => toggleBan(u)}>
                           {u.banned ? <ShieldCheck className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />}
                         </Button>

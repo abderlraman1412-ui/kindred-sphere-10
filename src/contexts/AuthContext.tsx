@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to load roles", roleError);
       setIsAdmin(false);
     } else {
-      setIsAdmin(!!roles?.some((r: { role: string }) => r.role === "admin"));
+      setIsAdmin(!!roles?.some((r: { role: string }) => r.role === "admin" || r.role === "assistant_admin"));
     }
 
     setLoading(false);

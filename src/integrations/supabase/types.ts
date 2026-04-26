@@ -532,10 +532,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_like: { Args: { _user_id: string }; Returns: boolean }
       is_conversation_member: {
         Args: { _conv_id: string; _uid: string }
         Returns: boolean
       }
+      is_main_admin: { Args: { _user_id: string }; Returns: boolean }
       mark_conversation_read: { Args: { _conv_id: string }; Returns: undefined }
       tier_rank: {
         Args: { t: Database["public"]["Enums"]["account_tier"] }

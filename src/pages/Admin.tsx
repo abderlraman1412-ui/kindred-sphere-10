@@ -16,7 +16,7 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star, Vote, X,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star, Vote, X, UserCog,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";

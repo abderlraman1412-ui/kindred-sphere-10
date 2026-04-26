@@ -251,6 +251,80 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_options: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          post_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position?: number
+          post_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          post_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          option_id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_id: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string
@@ -471,7 +545,7 @@ export type Database = {
     Enums: {
       account_tier: "normal" | "premium" | "pro" | "vip"
       app_role: "admin" | "user"
-      post_type: "text" | "image" | "video" | "rating"
+      post_type: "text" | "image" | "video" | "rating" | "poll"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -601,7 +675,7 @@ export const Constants = {
     Enums: {
       account_tier: ["normal", "premium", "pro", "vip"],
       app_role: ["admin", "user"],
-      post_type: ["text", "image", "video", "rating"],
+      post_type: ["text", "image", "video", "rating", "poll"],
     },
   },
 } as const

@@ -131,6 +131,22 @@ const Admin = () => {
     else { toast.success("Post deleted"); setPosts((prev) => prev.filter((x) => x.id !== p.id)); }
   };
 
+  const toggleAssistantAdmin = async (u: AdminProfile) => {
+    if (adminIds.has(u.id)) { toast.error("This user is already a main admin"); return; }
+    const isAssistant = assistantAdminIds.has(u.id);
+    if (isAssistant) {
+      const { error } = await supabase.from("user_roles").delete().eq("user_id", u.id).eq("role", "assistant_admin");
+      if (error) { toast.error(error.message); return; }
+      setAssistantAdminIds((prev) => { const n = new Set(prev); n.delete(u.id); return n; });
+      toast.success("Removed assistant admin");
+    } else {
+      const { error } = await supabase.from("user_roles").insert({ user_id: u.id, role: "assistant_admin" });
+      if (error) { toast.error(error.message); return; }
+      setAssistantAdminIds((prev) => new Set(prev).add(u.id));
+      toast.success("Granted assistant admin");
+    }
+  };
+
   const onMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;

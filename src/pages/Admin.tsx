@@ -16,7 +16,7 @@ import { TierBadge } from "@/components/TierBadge";
 import { toast } from "sonner";
 import {
   Users, FileText, Image as ImageIcon, Video, ShieldCheck, ShieldOff, Trash2, Search,
-  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star,
+  ArrowLeft, Plus, Loader2, Crown, BarChart3, Palette, MessageSquare, Sparkles, Star, Vote, X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -25,9 +25,10 @@ import { AdminMessages } from "@/components/AdminMessages";
 import { AISettings } from "@/components/AISettings";
 import { StarRating } from "@/components/StarRating";
 import { RatingsAdmin } from "@/components/RatingsAdmin";
+import { PollAdmin } from "@/components/PollAdmin";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
-type PostType = "text" | "image" | "video" | "rating";
+type PostType = "text" | "image" | "video" | "rating" | "poll";
 
 interface AdminProfile {
   id: string; email: string | null; name: string; avatar_url: string | null;
@@ -40,7 +41,7 @@ interface AdminPost {
 }
 
 const postSchema = z.object({
-  type: z.enum(["text", "image", "video", "rating"]),
+  type: z.enum(["text", "image", "video", "rating", "poll"]),
   visibility: z.enum(["normal", "premium", "pro", "vip"]),
   content: z.string().trim().max(5000).optional(),
   media_url: z.string().trim().max(2000).optional(),
@@ -60,6 +61,7 @@ const Admin = () => {
   const [composerContent, setComposerContent] = useState("");
   const [composerMediaUrl, setComposerMediaUrl] = useState("");
   const [composerDuration, setComposerDuration] = useState<number | null>(null);
+  const [composerPollOptions, setComposerPollOptions] = useState<string[]>(["", ""]);
 
   const REEL_MAX_SECONDS = 180; // 3 minutes
 
@@ -179,27 +181,53 @@ const Admin = () => {
       content: composerContent, media_url: composerMediaUrl || undefined,
     });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
-    if (composerType !== "text" && composerType !== "rating" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
+    if (composerType !== "text" && composerType !== "rating" && composerType !== "poll" && !composerMediaUrl) { toast.error("Upload a file first"); return; }
     if (composerType === "text" && !composerContent.trim()) { toast.error("Write something"); return; }
     if (composerType === "rating" && !composerContent.trim()) { toast.error("Add a question or topic for the rating"); return; }
+    if (composerType === "poll") {
+      if (!composerContent.trim()) { toast.error("Add a poll question"); return; }
+      const cleanOpts = composerPollOptions.map((o) => o.trim()).filter(Boolean);
+      if (cleanOpts.length < 2) { toast.error("Add at least 2 options"); return; }
+    }
     setPosting(true);
     const isReel = composerType === "video" && composerDuration !== null && composerDuration <= REEL_MAX_SECONDS;
     const { data, error } = await supabase.from("posts").insert({
       author_id: user.id,
-      type: composerType,
+      type: composerType as any,
       visibility: composerVisibility,
       content: composerContent.trim() || null,
       media_url: composerMediaUrl || null,
       is_reel: isReel,
       duration_seconds: composerType === "video" ? composerDuration : null,
     }).select().single();
-    setPosting(false);
-    if (error) toast.error(error.message);
-    else {
-      toast.success(isReel ? "Reel published 🎬" : "Post published");
-      setComposerContent(""); setComposerMediaUrl(""); setComposerDuration(null);
-      setPosts((prev) => [{ ...(data as AdminPost), author: { name: "You" } }, ...prev]);
+
+    if (error || !data) {
+      setPosting(false);
+      toast.error(error?.message ?? "Failed to publish");
+      return;
     }
+
+    if (composerType === "poll") {
+      const cleanOpts = composerPollOptions.map((o) => o.trim()).filter(Boolean);
+      const rows = cleanOpts.map((text, i) => ({ post_id: data.id, text, position: i }));
+      const { error: optErr } = await (supabase as any).from("poll_options").insert(rows);
+      if (optErr) {
+        // rollback the post if options failed
+        await supabase.from("posts").delete().eq("id", data.id);
+        setPosting(false);
+        toast.error(optErr.message);
+        return;
+      }
+    }
+
+    setPosting(false);
+    toast.success(
+      composerType === "poll" ? "Poll published 🗳️" :
+      isReel ? "Reel published 🎬" : "Post published"
+    );
+    setComposerContent(""); setComposerMediaUrl(""); setComposerDuration(null);
+    setComposerPollOptions(["", ""]);
+    setPosts((prev) => [{ ...(data as AdminPost), author: { name: "You" } }, ...prev]);
   };
 
   return (
@@ -234,12 +262,14 @@ const Admin = () => {
             <TabsTrigger value="compose"><Plus className="mr-2 h-4 w-4" />New post</TabsTrigger>
             <TabsTrigger value="messages"><MessageSquare className="mr-2 h-4 w-4" />Messages</TabsTrigger>
             <TabsTrigger value="ratings"><Star className="mr-2 h-4 w-4" />Ratings</TabsTrigger>
+            <TabsTrigger value="polls"><Vote className="mr-2 h-4 w-4" />Polls</TabsTrigger>
             <TabsTrigger value="ai"><Sparkles className="mr-2 h-4 w-4" />AI</TabsTrigger>
             <TabsTrigger value="branding"><Palette className="mr-2 h-4 w-4" />Branding</TabsTrigger>
           </TabsList>
 
           <TabsContent value="ai"><AISettings /></TabsContent>
           <TabsContent value="ratings"><RatingsAdmin /></TabsContent>
+          <TabsContent value="polls"><PollAdmin /></TabsContent>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -397,6 +427,7 @@ const Admin = () => {
                           <SelectItem value="image">Image</SelectItem>
                           <SelectItem value="video">Video</SelectItem>
                           <SelectItem value="rating">Rating (1–10 stars)</SelectItem>
+                          <SelectItem value="poll">Poll (voting)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -416,8 +447,10 @@ const Admin = () => {
 
                   <div className="space-y-2">
                     <Label>
-                      {composerType === "rating" ? "Question / topic" : "Content"}
-                      {composerType !== "text" && composerType !== "rating" && <span className="text-xs text-muted-foreground"> (optional caption)</span>}
+                      {composerType === "rating" ? "Question / topic"
+                        : composerType === "poll" ? "Poll question"
+                        : "Content"}
+                      {composerType !== "text" && composerType !== "rating" && composerType !== "poll" && <span className="text-xs text-muted-foreground"> (optional caption)</span>}
                     </Label>
                     <Textarea
                       value={composerContent}
@@ -426,12 +459,13 @@ const Admin = () => {
                       placeholder={
                         composerType === "text" ? "What's on your mind?"
                         : composerType === "rating" ? "What should people rate? e.g. How useful was this lesson?"
+                        : composerType === "poll" ? "What do you want to ask? e.g. Which feature should we build next?"
                         : "Add a caption…"
                       }
                     />
                   </div>
 
-                  {composerType !== "text" && composerType !== "rating" && (
+                  {composerType !== "text" && composerType !== "rating" && composerType !== "poll" && (
                     <div className="space-y-2">
                       <Label>{composerType === "image" ? "Image" : "Video"}</Label>
                       <Input
@@ -473,6 +507,43 @@ const Admin = () => {
                       <div className="flex items-center gap-0.5 text-tier-vip">
                         {Array.from({ length: 10 }).map((_, i) => <Star key={i} className="h-5 w-5" />)}
                       </div>
+                    </div>
+                  )}
+
+                  {composerType === "poll" && (
+                    <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-medium text-muted-foreground">Poll options (min 2)</Label>
+                        <Button
+                          type="button" variant="ghost" size="sm"
+                          onClick={() => setComposerPollOptions((opts) => opts.length < 10 ? [...opts, ""] : opts)}
+                          disabled={composerPollOptions.length >= 10}
+                        >
+                          <Plus className="mr-1 h-3 w-3" /> Add option
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {composerPollOptions.map((opt, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <Input
+                              value={opt}
+                              maxLength={120}
+                              placeholder={`Option ${i + 1}`}
+                              onChange={(e) => setComposerPollOptions((opts) => opts.map((o, idx) => idx === i ? e.target.value : o))}
+                            />
+                            {composerPollOptions.length > 2 && (
+                              <Button
+                                type="button" variant="ghost" size="icon"
+                                onClick={() => setComposerPollOptions((opts) => opts.filter((_, idx) => idx !== i))}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Each user can vote once. They can change their vote at any time.</p>
                     </div>
                   )}
 

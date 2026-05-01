@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { useMemo, useState } from "react";
-import { useNavigate, Navigate, useLocation } from "react-router-dom";
+import { useNavigate, Navigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -111,6 +111,11 @@ const Auth = () => {
                 <Button type="submit" disabled={busy} className="w-full">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
                 </Button>
+                <div className="text-center">
+                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                    نسيت كلمة المرور؟
+                  </Link>
+                </div>
               </form>
             </TabsContent>
 

@@ -7,13 +7,13 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, MessageSquare, Play, Bookmark } from "lucide-react";
+import { Home, Image as ImageIcon, Video, FileText, User as UserIcon, Moon, Sun, LogOut, MessageSquare, Play, Bookmark, PenSquare } from "lucide-react";
 import { TierBadge } from "@/components/TierBadge";
 import { NotificationBell } from "@/components/NotificationBell";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useUnreadCount } from "@/hooks/useUnreadCount";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "Feed", icon: Home, end: true },
   { to: "/text", label: "Text", icon: FileText },
   { to: "/images", label: "Images", icon: ImageIcon },
@@ -29,6 +29,11 @@ export const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const unreadChats = useUnreadCount();
+
+  const isVip = profile?.tier === "vip" && !isAdmin;
+  const navItems = isVip
+    ? [...baseNavItems, { to: "/create-post", label: "Publish", icon: PenSquare, end: false }]
+    : baseNavItems;
 
   const initials = profile?.name?.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase() ?? "U";
 

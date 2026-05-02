@@ -30,6 +30,11 @@ export const AppLayout = () => {
   const navigate = useNavigate();
   const unreadChats = useUnreadCount();
 
+  const isVip = profile?.tier === "vip" && !isAdmin;
+  const navItems = isVip
+    ? [...baseNavItems, { to: "/create-post", label: "Publish", icon: PenSquare, end: false }]
+    : baseNavItems;
+
   const initials = profile?.name?.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase() ?? "U";
 
   return (

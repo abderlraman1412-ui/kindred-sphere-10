@@ -13,7 +13,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useUnreadCount } from "@/hooks/useUnreadCount";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "Feed", icon: Home, end: true },
   { to: "/text", label: "Text", icon: FileText },
   { to: "/images", label: "Images", icon: ImageIcon },

@@ -70,7 +70,7 @@ const Admin = () => {
   const loadAll = async () => {
     setLoading(true);
     const [{ data: u }, { data: p }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.rpc("get_all_profiles_admin"),
       supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("user_roles").select("user_id, role").in("role", ["admin", "assistant_admin"]),
     ]);

@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to load profile", profileError);
       setProfile(null);
     } else {
-      setProfile((p as Profile) ?? null);
+      setProfile((p as unknown as Profile) ?? null);
     }
 
     if (roleError) {

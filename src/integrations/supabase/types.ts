@@ -559,9 +559,31 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_all_profiles_admin: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          banned: boolean
+          bio: string
+          created_at: string
+          email: string
+          id: string
+          last_seen: string
+          name: string
+          tier: Database["public"]["Enums"]["account_tier"]
+          updated_at: string
+        }[]
+      }
       get_or_create_conversation: {
         Args: { _other_user: string }
         Returns: string
+      }
+      get_profile_with_email: {
+        Args: { _target_id: string }
+        Returns: {
+          email: string
+          id: string
+        }[]
       }
       has_role: {
         Args: {

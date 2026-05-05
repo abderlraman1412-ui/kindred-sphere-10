@@ -35,10 +35,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loadProfile = async (uid: string) => {
     setLoading(true);
-    let [{ data: p, error: profileError }, { data: roles, error: roleError }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
+    let [{ data: p, error: profileError }, { data: roles, error: roleError }, { data: emailRow }] = await Promise.all([
+      supabase.from("profiles").select("id, name, avatar_url, bio, tier, banned, last_seen, created_at, updated_at").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
+      supabase.rpc("get_profile_with_email", { _target_id: uid }).maybeSingle(),
     ]);
+    // Merge email from secure RPC into profile data
+    if (p && emailRow?.email) {
+      (p as any).email = emailRow.email;
+    }
 
     if (!p && !profileError) {
       const { data: ensured, error: ensureError } = await supabase.rpc("ensure_my_profile");
@@ -53,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to load profile", profileError);
       setProfile(null);
     } else {
-      setProfile((p as Profile) ?? null);
+      setProfile((p as unknown as Profile) ?? null);
     }
 
     if (roleError) {

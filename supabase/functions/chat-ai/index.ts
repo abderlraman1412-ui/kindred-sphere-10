@@ -14,7 +14,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ✅ تأكد من المتغيرات
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const ANON_KEY =
@@ -23,14 +22,13 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!SUPABASE_URL || !SERVICE_KEY || !ANON_KEY) {
-      return json({ error: "Missing Supabase env config" }, 500);
+      return json({ error: "Service unavailable" }, 500);
     }
 
     if (!LOVABLE_API_KEY) {
-      return json({ error: "AI gateway not configured" }, 500);
+      return json({ error: "Service unavailable" }, 500);
     }
 
-    // ✅ التحقق من المستخدم
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Missing auth" }, 401);
 
@@ -47,7 +45,6 @@ Deno.serve(async (req) => {
 
     const userId = userData.user.id;
 
-    // ✅ قراءة البيانات
     const body = await req.json();
     const conversationId = body.conversation_id;
     const userMessage = (body.message ?? "").toString().trim();
@@ -62,7 +59,33 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // ✅ الرد الثابت
+    // ✅ Check ai_enabled and rate limits
+    const { data: settings } = await admin
+      .from("site_settings")
+      .select("ai_enabled, ai_daily_limit")
+      .eq("id", true)
+      .maybeSingle();
+
+    if (settings && !settings.ai_enabled) {
+      return json({ error: "AI is currently disabled" }, 403);
+    }
+
+    const dailyLimit = settings?.ai_daily_limit ?? 20;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: usage } = await admin
+      .from("ai_usage")
+      .select("count")
+      .eq("user_id", userId)
+      .eq("day", today)
+      .maybeSingle();
+
+    const currentCount = usage?.count ?? 0;
+    if (currentCount >= dailyLimit) {
+      return json({ error: "Daily AI limit reached" }, 429);
+    }
+
+    // ✅ Fixed reply
     const FIXED_REPLY = `اسم رئيس الشركة: الأستاذ سيد أبوبكر عبدالله
 
 رئيس المبرمجين: عبدالرحمن سيد أبوبكر عبدالله
@@ -91,7 +114,7 @@ Deno.serve(async (req) => {
       normalized.includes(k.toLowerCase())
     );
 
-    // ✅ تحقق من المحادثة
+    // ✅ Verify conversation
     const { data: conv } = await admin
       .from("conversations")
       .select("user1_id,user2_id")
@@ -108,7 +131,7 @@ Deno.serve(async (req) => {
       return json({ error: "Not AI chat" }, 403);
     }
 
-    // ✅ حفظ رسالة المستخدم (مع حماية)
+    // ✅ Save user message
     try {
       await admin.from("messages").insert({
         conversation_id: conversationId,
@@ -119,7 +142,7 @@ Deno.serve(async (req) => {
       console.log("Save user message failed:", (e instanceof Error ? e.message : String(e)));
     }
 
-    // ✅ الرد الثابت
+    // ✅ Fixed reply match
     if (matched) {
       try {
         await admin.from("messages").insert({
@@ -131,10 +154,13 @@ Deno.serve(async (req) => {
         console.log("Save fixed reply failed:", (e instanceof Error ? e.message : String(e)));
       }
 
+      // Increment usage
+      await upsertUsage(admin, userId, today, currentCount);
+
       return json({ reply: FIXED_REPLY }, 200);
     }
 
-    // ✅ جلب الرسائل السابقة
+    // ✅ Fetch history
     const { data: history } = await admin
       .from("messages")
       .select("sender_id,content")
@@ -149,7 +175,7 @@ Deno.serve(async (req) => {
         content: m.content,
       }));
 
-    // ✅ AI
+    // ✅ AI call
     let reply = "⚠️ AI not available";
 
     try {
@@ -178,7 +204,7 @@ Deno.serve(async (req) => {
       console.log("AI error:", (e instanceof Error ? e.message : String(e)));
     }
 
-    // ✅ حفظ رد AI
+    // ✅ Save AI reply
     try {
       await admin.from("messages").insert({
         conversation_id: conversationId,
@@ -189,12 +215,26 @@ Deno.serve(async (req) => {
       console.log("Save AI failed:", (e instanceof Error ? e.message : String(e)));
     }
 
+    // Increment usage
+    await upsertUsage(admin, userId, today, currentCount);
+
     return json({ reply }, 200);
   } catch (e) {
     console.error("ERROR:", e);
-    return json({ error: (e instanceof Error ? e.message : String(e)) || "Server error" }, 500);
+    return json({ error: "Internal server error" }, 500);
   }
 });
+
+async function upsertUsage(admin: any, userId: string, day: string, currentCount: number) {
+  try {
+    await admin.from("ai_usage").upsert(
+      { user_id: userId, day, count: currentCount + 1 },
+      { onConflict: "user_id,day" }
+    );
+  } catch (e) {
+    console.log("Usage upsert failed:", (e instanceof Error ? e.message : String(e)));
+  }
+}
 
 function json(data: any, status = 200) {
   return new Response(JSON.stringify(data), {

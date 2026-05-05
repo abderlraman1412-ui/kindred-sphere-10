@@ -491,7 +491,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          banned: boolean | null
+          bio: string | null
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_seen: string | null
+          name: string | null
+          tier: Database["public"]["Enums"]["account_tier"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          banned?: boolean | null
+          bio?: string | null
+          created_at?: string | null
+          email?: never
+          id?: string | null
+          last_seen?: string | null
+          name?: string | null
+          tier?: Database["public"]["Enums"]["account_tier"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          banned?: boolean | null
+          bio?: string | null
+          created_at?: string | null
+          email?: never
+          id?: string | null
+          last_seen?: string | null
+          name?: string | null
+          tier?: Database["public"]["Enums"]["account_tier"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ai_remaining_today: { Args: never; Returns: number }

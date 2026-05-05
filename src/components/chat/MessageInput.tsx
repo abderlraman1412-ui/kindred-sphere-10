@@ -69,8 +69,13 @@ export const MessageInput = ({ conversationId, onSend, onTyping, disableImage, p
       toast.error(error.message);
       setImagePreview(null);
     } else {
-      const { data } = supabase.storage.from("chat-images").getPublicUrl(path);
-      setImageUrl(data.publicUrl);
+      const { data: signedData, error: signError } = await supabase.storage.from("chat-images").createSignedUrl(path, 60 * 60 * 24 * 7);
+      if (signError || !signedData?.signedUrl) {
+        toast.error("Failed to get image URL");
+        setImagePreview(null);
+      } else {
+        setImageUrl(signedData.signedUrl);
+      }
     }
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";

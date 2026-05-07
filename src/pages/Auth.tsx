@@ -60,6 +60,7 @@ const Auth = () => {
       email: fd.get("email"),
       password: fd.get("password"),
       name: fd.get("name"),
+      gender: fd.get("gender"),
     });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -71,7 +72,7 @@ const Auth = () => {
       password: parsed.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}${redirectTo}`,
-        data: { name: parsed.data.name },
+        data: { name: parsed.data.name, gender: parsed.data.gender },
       },
     });
     setBusy(false);

@@ -18,6 +18,7 @@ const loginSchema = z.object({
 });
 const signupSchema = loginSchema.extend({
   name: z.string().trim().min(2, "Name too short").max(60),
+  gender: z.enum(["male", "female"], { required_error: "اختر الجنس" }),
 });
 
 const Auth = () => {

@@ -25,14 +25,16 @@ interface Props {
 }
 
 export const ChatWindow = ({ conversationId, other, onlineIds, onBack, readOnly }: Props) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const { messages, loading, hasMore, loadMore } = useMessages(conversationId);
   const { otherTyping, sendTyping } = useTypingIndicator(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [otherLastSeen, setOtherLastSeen] = useState<string | null>(null);
   const [aiThinking, setAiThinking] = useState(false);
+  const prevMsgCountRef = useRef(0);
 
   const isAI = isAIUser(other.id);
+  const { voiceEnabled, toggleVoice, speaking, speak, stop } = useTTS(profile?.gender ?? null);
 
   // Fetch other user's last_seen (skip for AI)
   useEffect(() => {

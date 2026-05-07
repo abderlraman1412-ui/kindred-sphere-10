@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AccountTier = "normal" | "premium" | "pro" | "vip";
 
+export type Gender = "male" | "female";
+
 export interface Profile {
   id: string;
   email: string | null;
@@ -12,6 +14,7 @@ export interface Profile {
   bio: string | null;
   tier: AccountTier;
   banned: boolean;
+  gender: Gender | null;
 }
 
 interface AuthCtx {

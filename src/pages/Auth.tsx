@@ -18,6 +18,7 @@ const loginSchema = z.object({
 });
 const signupSchema = loginSchema.extend({
   name: z.string().trim().min(2, "Name too short").max(60),
+  gender: z.enum(["male", "female"], { required_error: "اختر الجنس" }),
 });
 
 const Auth = () => {
@@ -59,6 +60,7 @@ const Auth = () => {
       email: fd.get("email"),
       password: fd.get("password"),
       name: fd.get("name"),
+      gender: fd.get("gender"),
     });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -70,7 +72,7 @@ const Auth = () => {
       password: parsed.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}${redirectTo}`,
-        data: { name: parsed.data.name },
+        data: { name: parsed.data.name, gender: parsed.data.gender },
       },
     });
     setBusy(false);
@@ -132,6 +134,19 @@ const Auth = () => {
                 <div className="space-y-2">
                   <Label htmlFor="su-pw">Password</Label>
                   <Input id="su-pw" name="password" type="password" required minLength={6} autoComplete="new-password" />
+                </div>
+                <div className="space-y-2">
+                  <Label>الجنس</Label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="gender" value="male" required className="accent-primary" />
+                      <span className="text-sm">ذكر</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="gender" value="female" className="accent-primary" />
+                      <span className="text-sm">أنثى</span>
+                    </label>
+                  </div>
                 </div>
                 <Button type="submit" disabled={busy} className="w-full">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}

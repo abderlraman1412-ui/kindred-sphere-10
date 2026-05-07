@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AccountTier = "normal" | "premium" | "pro" | "vip";
 
+export type Gender = "male" | "female";
+
 export interface Profile {
   id: string;
   email: string | null;
@@ -12,6 +14,7 @@ export interface Profile {
   bio: string | null;
   tier: AccountTier;
   banned: boolean;
+  gender: Gender | null;
 }
 
 interface AuthCtx {
@@ -36,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loadProfile = async (uid: string) => {
     setLoading(true);
     let [{ data: p, error: profileError }, { data: roles, error: roleError }, { data: emailRow }] = await Promise.all([
-      supabase.from("profiles").select("id, name, avatar_url, bio, tier, banned, last_seen, created_at, updated_at").eq("id", uid).maybeSingle(),
+      supabase.from("profiles").select("id, name, avatar_url, bio, tier, banned, gender, last_seen, created_at, updated_at").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
       supabase.rpc("get_profile_with_email", { _target_id: uid }).maybeSingle(),
     ]);

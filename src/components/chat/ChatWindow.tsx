@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessages } from "@/hooks/useMessages";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { useTTS } from "@/hooks/useTTS";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 import { OnlineDot } from "./OnlineDot";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { isAIUser } from "@/lib/aiAssistant";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   conversationId: string;
@@ -23,14 +25,16 @@ interface Props {
 }
 
 export const ChatWindow = ({ conversationId, other, onlineIds, onBack, readOnly }: Props) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const { messages, loading, hasMore, loadMore } = useMessages(conversationId);
   const { otherTyping, sendTyping } = useTypingIndicator(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [otherLastSeen, setOtherLastSeen] = useState<string | null>(null);
   const [aiThinking, setAiThinking] = useState(false);
+  const prevMsgCountRef = useRef(0);
 
   const isAI = isAIUser(other.id);
+  const { voiceEnabled, toggleVoice, speaking, speak, stop } = useTTS(profile?.gender ?? null);
 
   // Fetch other user's last_seen (skip for AI)
   useEffect(() => {
@@ -47,6 +51,22 @@ export const ChatWindow = ({ conversationId, other, onlineIds, onBack, readOnly 
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages.length, otherTyping, aiThinking]);
+
+  // Auto-speak new AI messages when voice is enabled
+  useEffect(() => {
+    if (!isAI || !voiceEnabled) {
+      prevMsgCountRef.current = messages.length;
+      return;
+    }
+    if (messages.length > prevMsgCountRef.current) {
+      const newMsgs = messages.slice(prevMsgCountRef.current);
+      const lastAI = [...newMsgs].reverse().find((m) => isAIUser(m.sender_id) && m.content);
+      if (lastAI?.content) {
+        speak(lastAI.content);
+      }
+    }
+    prevMsgCountRef.current = messages.length;
+  }, [messages.length, isAI, voiceEnabled, speak]);
 
   const handleScroll = () => {
     if (!scrollRef.current || !hasMore) return;
@@ -146,6 +166,22 @@ export const ChatWindow = ({ conversationId, other, onlineIds, onBack, readOnly 
             {showTyping ? (isAI ? "AI is typing…" : "typing…") : presenceText}
           </p>
         </div>
+        {isAI && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => { if (speaking) stop(); toggleVoice(); }}
+                className={cn("shrink-0", voiceEnabled && "text-primary")}
+                aria-label={voiceEnabled ? "تعطيل الصوت" : "تفعيل الصوت"}
+              >
+                {voiceEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{voiceEnabled ? "كلام مكتوب فقط" : "كلام + صوت"}</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Messages */}

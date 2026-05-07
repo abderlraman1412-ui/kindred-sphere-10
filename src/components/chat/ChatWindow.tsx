@@ -166,6 +166,22 @@ export const ChatWindow = ({ conversationId, other, onlineIds, onBack, readOnly 
             {showTyping ? (isAI ? "AI is typing…" : "typing…") : presenceText}
           </p>
         </div>
+        {isAI && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => { if (speaking) stop(); toggleVoice(); }}
+                className={cn("shrink-0", voiceEnabled && "text-primary")}
+                aria-label={voiceEnabled ? "تعطيل الصوت" : "تفعيل الصوت"}
+              >
+                {voiceEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{voiceEnabled ? "كلام مكتوب فقط" : "كلام + صوت"}</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       {/* Messages */}

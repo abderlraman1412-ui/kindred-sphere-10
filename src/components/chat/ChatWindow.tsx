@@ -52,6 +52,22 @@ export const ChatWindow = ({ conversationId, other, onlineIds, onBack, readOnly 
     }
   }, [messages.length, otherTyping, aiThinking]);
 
+  // Auto-speak new AI messages when voice is enabled
+  useEffect(() => {
+    if (!isAI || !voiceEnabled) {
+      prevMsgCountRef.current = messages.length;
+      return;
+    }
+    if (messages.length > prevMsgCountRef.current) {
+      const newMsgs = messages.slice(prevMsgCountRef.current);
+      const lastAI = [...newMsgs].reverse().find((m) => isAIUser(m.sender_id) && m.content);
+      if (lastAI?.content) {
+        speak(lastAI.content);
+      }
+    }
+    prevMsgCountRef.current = messages.length;
+  }, [messages.length, isAI, voiceEnabled, speak]);
+
   const handleScroll = () => {
     if (!scrollRef.current || !hasMore) return;
     if (scrollRef.current.scrollTop < 60) {

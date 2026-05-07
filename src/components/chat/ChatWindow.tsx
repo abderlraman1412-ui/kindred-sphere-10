@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessages } from "@/hooks/useMessages";
 import { useTypingIndicator } from "@/hooks/useTypingIndicator";
+import { useTTS } from "@/hooks/useTTS";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 import { OnlineDot } from "./OnlineDot";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { isAIUser } from "@/lib/aiAssistant";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   conversationId: string;

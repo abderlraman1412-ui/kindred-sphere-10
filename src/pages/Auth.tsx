@@ -135,6 +135,19 @@ const Auth = () => {
                   <Label htmlFor="su-pw">Password</Label>
                   <Input id="su-pw" name="password" type="password" required minLength={6} autoComplete="new-password" />
                 </div>
+                <div className="space-y-2">
+                  <Label>الجنس</Label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="gender" value="male" required className="accent-primary" />
+                      <span className="text-sm">ذكر</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" name="gender" value="female" className="accent-primary" />
+                      <span className="text-sm">أنثى</span>
+                    </label>
+                  </div>
+                </div>
                 <Button type="submit" disabled={busy} className="w-full">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
                 </Button>

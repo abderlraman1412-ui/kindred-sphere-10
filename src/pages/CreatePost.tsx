@@ -105,10 +105,13 @@ const CreatePost = () => {
       type: composerType,
       content: composerContent,
       media_url: composerMediaUrl || undefined,
+      cta_url: ctaUrl || undefined,
+      cta_label: ctaLabel || undefined,
     });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     if (composerType !== "text" && !composerMediaUrl) { toast.error("ارفع ملف أولاً"); return; }
     if (composerType === "text" && !composerContent.trim()) { toast.error("اكتب شيئاً"); return; }
+    if (isAd && !ctaUrl.trim()) { toast.error("أضف رابط الزر للإعلان"); return; }
 
     setPosting(true);
     const isReel = composerType === "video" && composerDuration !== null && composerDuration <= REEL_MAX_SECONDS;
@@ -120,6 +123,9 @@ const CreatePost = () => {
       media_url: composerMediaUrl || null,
       is_reel: isReel,
       duration_seconds: composerType === "video" ? composerDuration : null,
+      is_ad: isAd,
+      cta_url: ctaUrl.trim() || null,
+      cta_label: ctaLabel.trim() || null,
     });
 
     setPosting(false);
@@ -132,7 +138,11 @@ const CreatePost = () => {
     setComposerContent("");
     setComposerMediaUrl("");
     setComposerDuration(null);
+    setIsAd(false);
+    setCtaUrl("");
+    setCtaLabel("");
   };
+
 
   return (
     <div className="space-y-4">

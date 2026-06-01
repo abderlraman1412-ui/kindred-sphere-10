@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { CTA_TEMPLATES, CtaVariant, getCtaTemplate, getCtaCustomStyle } from "@/lib/ctaTemplates";
 
 type PostType = "text" | "image" | "video";
 

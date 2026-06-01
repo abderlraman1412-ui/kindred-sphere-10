@@ -131,6 +131,9 @@ const CreatePost = () => {
       is_ad: isAd,
       cta_url: ctaUrl.trim() || null,
       cta_label: ctaLabel.trim() || null,
+      cta_variant: isAd && ctaUrl.trim() ? ctaVariant : null,
+      cta_bg: isAd && ctaUrl.trim() && ctaVariant === "custom" ? ctaBg : null,
+      cta_fg: isAd && ctaUrl.trim() && ctaVariant === "custom" ? ctaFg : null,
     });
 
     setPosting(false);

@@ -330,8 +330,11 @@ export type Database = {
           author_id: string
           content: string | null
           created_at: string
+          cta_bg: string | null
+          cta_fg: string | null
           cta_label: string | null
           cta_url: string | null
+          cta_variant: string | null
           duration_seconds: number | null
           featured: boolean
           id: string
@@ -346,8 +349,11 @@ export type Database = {
           author_id: string
           content?: string | null
           created_at?: string
+          cta_bg?: string | null
+          cta_fg?: string | null
           cta_label?: string | null
           cta_url?: string | null
+          cta_variant?: string | null
           duration_seconds?: number | null
           featured?: boolean
           id?: string
@@ -362,8 +368,11 @@ export type Database = {
           author_id?: string
           content?: string | null
           created_at?: string
+          cta_bg?: string | null
+          cta_fg?: string | null
           cta_label?: string | null
           cta_url?: string | null
+          cta_variant?: string | null
           duration_seconds?: number | null
           featured?: boolean
           id?: string

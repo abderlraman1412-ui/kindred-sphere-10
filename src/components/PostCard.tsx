@@ -136,6 +136,11 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
             <span className="truncate font-semibold text-surface-foreground">{post.author?.name ?? "Unknown"}</span>
             {authorIsAdmin && <AdminBadge size="xs" />}
             {post.author?.tier && <TierBadge tier={post.author.tier} size="xs" />}
+            {post.is_ad && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-bold text-warning">
+                <Megaphone className="h-3 w-3" /> إعلان
+              </span>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · <span className="capitalize">{post.visibility}</span>

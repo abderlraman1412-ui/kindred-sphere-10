@@ -330,9 +330,12 @@ export type Database = {
           author_id: string
           content: string | null
           created_at: string
+          cta_label: string | null
+          cta_url: string | null
           duration_seconds: number | null
           featured: boolean
           id: string
+          is_ad: boolean
           is_reel: boolean
           media_url: string | null
           type: Database["public"]["Enums"]["post_type"]
@@ -343,9 +346,12 @@ export type Database = {
           author_id: string
           content?: string | null
           created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
           duration_seconds?: number | null
           featured?: boolean
           id?: string
+          is_ad?: boolean
           is_reel?: boolean
           media_url?: string | null
           type: Database["public"]["Enums"]["post_type"]
@@ -356,9 +362,12 @@ export type Database = {
           author_id?: string
           content?: string | null
           created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
           duration_seconds?: number | null
           featured?: boolean
           id?: string
+          is_ad?: boolean
           is_reel?: boolean
           media_url?: string | null
           type?: Database["public"]["Enums"]["post_type"]

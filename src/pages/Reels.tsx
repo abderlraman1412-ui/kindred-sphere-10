@@ -11,7 +11,7 @@ import { useAdminIds } from "@/hooks/useAdminIds";
 import { toast } from "sonner";
 import {
   Heart, MessageCircle, Share2, Trash2, Send,
-  Volume2, VolumeX, Play, Loader2, X, ArrowLeft, Star, Bookmark,
+  Volume2, VolumeX, Play, Loader2, X, ArrowLeft, Star, Bookmark, Megaphone,
 } from "lucide-react";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
@@ -25,6 +25,9 @@ interface Reel {
   created_at: string;
   duration_seconds: number | null;
   featured: boolean;
+  cta_url: string | null;
+  cta_label: string | null;
+  is_ad: boolean;
   author?: { name: string; avatar_url: string | null; tier: Tier };
   like_count: number;
   comment_count: number;
@@ -88,6 +91,9 @@ const Reels = () => {
       created_at: r.created_at,
       duration_seconds: r.duration_seconds,
       featured: !!r.featured,
+      cta_url: r.cta_url ?? null,
+      cta_label: r.cta_label ?? null,
+      is_ad: !!r.is_ad,
       author: pmap.get(r.author_id) as any,
       like_count: lcount.get(r.id) ?? 0,
       comment_count: ccount.get(r.id) ?? 0,
@@ -480,6 +486,17 @@ const ReelItem = ({
           <p className="line-clamp-3 whitespace-pre-wrap break-words text-sm leading-snug opacity-95">
             {reel.content}
           </p>
+        )}
+        {reel.cta_url && (
+          <a
+            href={reel.cta_url}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-lg active:scale-95"
+          >
+            {reel.is_ad && <Megaphone className="h-4 w-4" />}
+            {reel.cta_label?.trim() || "اعرف المزيد"}
+          </a>
         )}
       </div>
     </section>

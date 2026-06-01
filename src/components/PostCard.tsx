@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TierBadge } from "@/components/TierBadge";
 import { AdminBadge } from "@/components/AdminBadge";
 import { useAdminIds } from "@/hooks/useAdminIds";
-import { Heart, MessageCircle, Share2, Trash2, Send } from "lucide-react";
+import { Heart, MessageCircle, Share2, Trash2, Send, ExternalLink, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StarRating } from "@/components/StarRating";
@@ -22,6 +22,9 @@ export interface PostRow {
   media_url: string | null;
   visibility: "normal" | "premium" | "pro" | "vip";
   created_at: string;
+  cta_url?: string | null;
+  cta_label?: string | null;
+  is_ad?: boolean | null;
   author?: { name: string; avatar_url: string | null; tier: "normal" | "premium" | "pro" | "vip" };
   like_count?: number;
   comment_count?: number;
@@ -133,6 +136,11 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
             <span className="truncate font-semibold text-surface-foreground">{post.author?.name ?? "Unknown"}</span>
             {authorIsAdmin && <AdminBadge size="xs" />}
             {post.author?.tier && <TierBadge tier={post.author.tier} size="xs" />}
+            {post.is_ad && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-bold text-warning">
+                <Megaphone className="h-3 w-3" /> إعلان
+              </span>
+            )}
           </div>
           <p className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })} · <span className="capitalize">{post.visibility}</span>
@@ -167,6 +175,18 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
           <PollWidget postId={post.id} />
         </div>
       )}
+
+      {post.cta_url && (
+        <div className="border-t bg-muted/10 px-4 py-3">
+          <Button asChild className="w-full" size="lg">
+            <a href={post.cta_url} target="_blank" rel="noopener noreferrer nofollow">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              {post.cta_label?.trim() || "اعرف المزيد"}
+            </a>
+          </Button>
+        </div>
+      )}
+
 
       <div className="flex items-center justify-between border-t px-2 py-1">
         <Button variant="ghost" size="sm" onClick={toggleLike} className={liked ? "text-destructive" : ""}>

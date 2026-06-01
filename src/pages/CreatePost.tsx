@@ -12,13 +12,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 type PostType = "text" | "image" | "video";
+
+const ctaUrlSchema = z
+  .string()
+  .trim()
+  .url("رابط CTA غير صالح")
+  .max(2000);
 
 const postSchema = z.object({
   type: z.enum(["text", "image", "video"]),
   content: z.string().trim().max(5000).optional(),
   media_url: z.string().trim().max(2000).optional(),
+  cta_url: ctaUrlSchema.optional().or(z.literal("")),
+  cta_label: z.string().trim().max(60).optional(),
 });
 
 const REEL_MAX_SECONDS = 180;
@@ -29,6 +38,9 @@ const CreatePost = () => {
   const [composerContent, setComposerContent] = useState("");
   const [composerMediaUrl, setComposerMediaUrl] = useState("");
   const [composerDuration, setComposerDuration] = useState<number | null>(null);
+  const [isAd, setIsAd] = useState(false);
+  const [ctaUrl, setCtaUrl] = useState("");
+  const [ctaLabel, setCtaLabel] = useState("");
   const [posting, setPosting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -93,10 +105,13 @@ const CreatePost = () => {
       type: composerType,
       content: composerContent,
       media_url: composerMediaUrl || undefined,
+      cta_url: ctaUrl || undefined,
+      cta_label: ctaLabel || undefined,
     });
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     if (composerType !== "text" && !composerMediaUrl) { toast.error("ارفع ملف أولاً"); return; }
     if (composerType === "text" && !composerContent.trim()) { toast.error("اكتب شيئاً"); return; }
+    if (isAd && !ctaUrl.trim()) { toast.error("أضف رابط الزر للإعلان"); return; }
 
     setPosting(true);
     const isReel = composerType === "video" && composerDuration !== null && composerDuration <= REEL_MAX_SECONDS;
@@ -108,6 +123,9 @@ const CreatePost = () => {
       media_url: composerMediaUrl || null,
       is_reel: isReel,
       duration_seconds: composerType === "video" ? composerDuration : null,
+      is_ad: isAd,
+      cta_url: ctaUrl.trim() || null,
+      cta_label: ctaLabel.trim() || null,
     });
 
     setPosting(false);
@@ -120,7 +138,11 @@ const CreatePost = () => {
     setComposerContent("");
     setComposerMediaUrl("");
     setComposerDuration(null);
+    setIsAd(false);
+    setCtaUrl("");
+    setCtaLabel("");
   };
+
 
   return (
     <div className="space-y-4">
@@ -177,6 +199,45 @@ const CreatePost = () => {
                 )}
               </div>
             )}
+
+            <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="is-ad" className="flex flex-col gap-0.5">
+                  <span>📣 منشور إعلاني</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    أضف زر دعوة لإجراء (رابط، تنزيل، إلخ)
+                  </span>
+                </Label>
+                <Switch id="is-ad" checked={isAd} onCheckedChange={setIsAd} />
+              </div>
+
+              {isAd && (
+                <div className="space-y-2 pt-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="cta-url">رابط الزر *</Label>
+                    <Input
+                      id="cta-url"
+                      type="url"
+                      placeholder="https://example.com"
+                      value={ctaUrl}
+                      onChange={(e) => setCtaUrl(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="cta-label">نص الزر</Label>
+                    <Input
+                      id="cta-label"
+                      placeholder="اعرف المزيد / حمّل الآن / زر الموقع"
+                      maxLength={60}
+                      value={ctaLabel}
+                      onChange={(e) => setCtaLabel(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+
 
             <Button type="submit" disabled={posting || uploading} className="w-full">
               {posting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}

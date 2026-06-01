@@ -22,6 +22,9 @@ export interface PostRow {
   media_url: string | null;
   visibility: "normal" | "premium" | "pro" | "vip";
   created_at: string;
+  cta_url?: string | null;
+  cta_label?: string | null;
+  is_ad?: boolean | null;
   author?: { name: string; avatar_url: string | null; tier: "normal" | "premium" | "pro" | "vip" };
   like_count?: number;
   comment_count?: number;

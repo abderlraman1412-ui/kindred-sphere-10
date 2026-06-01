@@ -12,13 +12,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 type PostType = "text" | "image" | "video";
+
+const ctaUrlSchema = z
+  .string()
+  .trim()
+  .url("رابط CTA غير صالح")
+  .max(2000);
 
 const postSchema = z.object({
   type: z.enum(["text", "image", "video"]),
   content: z.string().trim().max(5000).optional(),
   media_url: z.string().trim().max(2000).optional(),
+  cta_url: ctaUrlSchema.optional().or(z.literal("")),
+  cta_label: z.string().trim().max(60).optional(),
 });
 
 const REEL_MAX_SECONDS = 180;

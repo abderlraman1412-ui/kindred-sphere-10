@@ -25,6 +25,9 @@ interface Reel {
   created_at: string;
   duration_seconds: number | null;
   featured: boolean;
+  cta_url: string | null;
+  cta_label: string | null;
+  is_ad: boolean;
   author?: { name: string; avatar_url: string | null; tier: Tier };
   like_count: number;
   comment_count: number;

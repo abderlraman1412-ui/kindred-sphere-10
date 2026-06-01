@@ -149,6 +149,7 @@ const CreatePost = () => {
     setIsAd(false);
     setCtaUrl("");
     setCtaLabel("");
+    setCtaVariant("primary");
   };
 
 

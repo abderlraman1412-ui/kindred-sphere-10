@@ -493,17 +493,26 @@ const ReelItem = ({
             {reel.content}
           </p>
         )}
-        {reel.cta_url && (
-          <a
-            href={reel.cta_url}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-lg active:scale-95"
-          >
-            {reel.is_ad && <Megaphone className="h-4 w-4" />}
-            {reel.cta_label?.trim() || "اعرف المزيد"}
-          </a>
-        )}
+        {reel.cta_url && (() => {
+          const tpl = getCtaTemplate(reel.cta_variant);
+          const customStyle = tpl.id === "custom" ? getCtaCustomStyle(reel.cta_bg, reel.cta_fg) : undefined;
+          return (
+            <a
+              href={reel.cta_url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              style={customStyle}
+              className={cn(
+                "mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold shadow-lg active:scale-95",
+                tpl.id !== "custom" && tpl.className,
+                tpl.id === "custom" && !reel.cta_bg && "bg-primary text-primary-foreground",
+              )}
+            >
+              {reel.is_ad && <Megaphone className="h-4 w-4" />}
+              {reel.cta_label?.trim() || "اعرف المزيد"}
+            </a>
+          );
+        })()}
       </div>
     </section>
   );

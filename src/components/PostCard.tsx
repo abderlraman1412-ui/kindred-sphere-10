@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StarRating } from "@/components/StarRating";
 import { PollWidget } from "@/components/PollWidget";
+import { cn } from "@/lib/utils";
+import { getCtaTemplate, getCtaCustomStyle } from "@/lib/ctaTemplates";
 
 export interface PostRow {
   id: string;
@@ -24,6 +26,9 @@ export interface PostRow {
   created_at: string;
   cta_url?: string | null;
   cta_label?: string | null;
+  cta_variant?: string | null;
+  cta_bg?: string | null;
+  cta_fg?: string | null;
   is_ad?: boolean | null;
   author?: { name: string; avatar_url: string | null; tier: "normal" | "premium" | "pro" | "vip" };
   like_count?: number;
@@ -176,16 +181,27 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
         </div>
       )}
 
-      {post.cta_url && (
-        <div className="border-t bg-muted/10 px-4 py-3">
-          <Button asChild className="w-full" size="lg">
-            <a href={post.cta_url} target="_blank" rel="noopener noreferrer nofollow">
-              <ExternalLink className="mr-2 h-4 w-4" />
+      {post.cta_url && (() => {
+        const tpl = getCtaTemplate(post.cta_variant);
+        const customStyle = tpl.id === "custom" ? getCtaCustomStyle(post.cta_bg, post.cta_fg) : undefined;
+        return (
+          <div className="border-t bg-muted/10 px-4 py-3">
+            <a
+              href={post.cta_url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              style={customStyle}
+              className={cn(
+                "inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-bold transition active:scale-[0.98]",
+                tpl.id !== "custom" && tpl.className,
+              )}
+            >
+              <ExternalLink className="h-4 w-4" />
               {post.cta_label?.trim() || "اعرف المزيد"}
             </a>
-          </Button>
-        </div>
-      )}
+          </div>
+        );
+      })()}
 
 
       <div className="flex items-center justify-between border-t px-2 py-1">

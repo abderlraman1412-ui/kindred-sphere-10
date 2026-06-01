@@ -13,6 +13,8 @@ import {
   Heart, MessageCircle, Share2, Trash2, Send,
   Volume2, VolumeX, Play, Loader2, X, ArrowLeft, Star, Bookmark, Megaphone,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getCtaTemplate, getCtaCustomStyle } from "@/lib/ctaTemplates";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
 
@@ -27,6 +29,9 @@ interface Reel {
   featured: boolean;
   cta_url: string | null;
   cta_label: string | null;
+  cta_variant: string | null;
+  cta_bg: string | null;
+  cta_fg: string | null;
   is_ad: boolean;
   author?: { name: string; avatar_url: string | null; tier: Tier };
   like_count: number;
@@ -93,6 +98,9 @@ const Reels = () => {
       featured: !!r.featured,
       cta_url: r.cta_url ?? null,
       cta_label: r.cta_label ?? null,
+      cta_variant: r.cta_variant ?? null,
+      cta_bg: r.cta_bg ?? null,
+      cta_fg: r.cta_fg ?? null,
       is_ad: !!r.is_ad,
       author: pmap.get(r.author_id) as any,
       like_count: lcount.get(r.id) ?? 0,
@@ -487,17 +495,26 @@ const ReelItem = ({
             {reel.content}
           </p>
         )}
-        {reel.cta_url && (
-          <a
-            href={reel.cta_url}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-lg active:scale-95"
-          >
-            {reel.is_ad && <Megaphone className="h-4 w-4" />}
-            {reel.cta_label?.trim() || "اعرف المزيد"}
-          </a>
-        )}
+        {reel.cta_url && (() => {
+          const tpl = getCtaTemplate(reel.cta_variant);
+          const customStyle = tpl.id === "custom" ? getCtaCustomStyle(reel.cta_bg, reel.cta_fg) : undefined;
+          return (
+            <a
+              href={reel.cta_url}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              style={customStyle}
+              className={cn(
+                "mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold shadow-lg active:scale-95",
+                tpl.id !== "custom" && tpl.className,
+                tpl.id === "custom" && !reel.cta_bg && "bg-primary text-primary-foreground",
+              )}
+            >
+              {reel.is_ad && <Megaphone className="h-4 w-4" />}
+              {reel.cta_label?.trim() || "اعرف المزيد"}
+            </a>
+          );
+        })()}
       </div>
     </section>
   );

@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { CTA_TEMPLATES, CtaVariant, getCtaTemplate, getCtaCustomStyle } from "@/lib/ctaTemplates";
 
 type PostType = "text" | "image" | "video";
 
@@ -41,6 +43,9 @@ const CreatePost = () => {
   const [isAd, setIsAd] = useState(false);
   const [ctaUrl, setCtaUrl] = useState("");
   const [ctaLabel, setCtaLabel] = useState("");
+  const [ctaVariant, setCtaVariant] = useState<CtaVariant>("primary");
+  const [ctaBg, setCtaBg] = useState("#1d4ed8");
+  const [ctaFg, setCtaFg] = useState("#ffffff");
   const [posting, setPosting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -126,6 +131,9 @@ const CreatePost = () => {
       is_ad: isAd,
       cta_url: ctaUrl.trim() || null,
       cta_label: ctaLabel.trim() || null,
+      cta_variant: isAd && ctaUrl.trim() ? ctaVariant : null,
+      cta_bg: isAd && ctaUrl.trim() && ctaVariant === "custom" ? ctaBg : null,
+      cta_fg: isAd && ctaUrl.trim() && ctaVariant === "custom" ? ctaFg : null,
     });
 
     setPosting(false);
@@ -141,6 +149,7 @@ const CreatePost = () => {
     setIsAd(false);
     setCtaUrl("");
     setCtaLabel("");
+    setCtaVariant("primary");
   };
 
 
@@ -233,9 +242,87 @@ const CreatePost = () => {
                       onChange={(e) => setCtaLabel(e.target.value)}
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>قالب الزر</Label>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {CTA_TEMPLATES.map((tpl) => (
+                        <button
+                          type="button"
+                          key={tpl.id}
+                          onClick={() => setCtaVariant(tpl.id)}
+                          className={cn(
+                            "flex flex-col items-center gap-1 rounded-lg border-2 p-2 text-[11px] font-medium transition",
+                            ctaVariant === tpl.id ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-border",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "flex h-8 w-full items-center justify-center rounded-md text-[10px] font-bold",
+                              tpl.previewClassName,
+                            )}
+                          >
+                            Aa
+                          </span>
+                          <span className="text-foreground">{tpl.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {ctaVariant === "custom" && (
+                    <div className="grid grid-cols-2 gap-3 rounded-lg bg-background p-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="cta-bg" className="text-xs">لون الخلفية</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="cta-bg"
+                            type="color"
+                            value={ctaBg}
+                            onChange={(e) => setCtaBg(e.target.value)}
+                            className="h-9 w-12 cursor-pointer p-1"
+                          />
+                          <Input value={ctaBg} onChange={(e) => setCtaBg(e.target.value)} className="h-9 flex-1 font-mono text-xs" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="cta-fg" className="text-xs">لون النص</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="cta-fg"
+                            type="color"
+                            value={ctaFg}
+                            onChange={(e) => setCtaFg(e.target.value)}
+                            className="h-9 w-12 cursor-pointer p-1"
+                          />
+                          <Input value={ctaFg} onChange={(e) => setCtaFg(e.target.value)} className="h-9 flex-1 font-mono text-xs" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-1 pt-1">
+                    <Label className="text-xs text-muted-foreground">معاينة</Label>
+                    {(() => {
+                      const tpl = getCtaTemplate(ctaVariant);
+                      const customStyle = tpl.id === "custom" ? getCtaCustomStyle(ctaBg, ctaFg) : undefined;
+                      return (
+                        <div
+                          style={customStyle}
+                          className={cn(
+                            "inline-flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-bold",
+                            tpl.id !== "custom" && tpl.className,
+                          )}
+                        >
+                          {ctaLabel.trim() || "اعرف المزيد"}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
             </div>
+
 
 
 

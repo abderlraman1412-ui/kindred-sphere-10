@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TierBadge } from "@/components/TierBadge";
 import { AdminBadge } from "@/components/AdminBadge";
 import { useAdminIds } from "@/hooks/useAdminIds";
-import { Heart, MessageCircle, Share2, Trash2, Send } from "lucide-react";
+import { Heart, MessageCircle, Share2, Trash2, Send, ExternalLink, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StarRating } from "@/components/StarRating";

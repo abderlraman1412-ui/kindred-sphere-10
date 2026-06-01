@@ -38,6 +38,9 @@ const CreatePost = () => {
   const [composerContent, setComposerContent] = useState("");
   const [composerMediaUrl, setComposerMediaUrl] = useState("");
   const [composerDuration, setComposerDuration] = useState<number | null>(null);
+  const [isAd, setIsAd] = useState(false);
+  const [ctaUrl, setCtaUrl] = useState("");
+  const [ctaLabel, setCtaLabel] = useState("");
   const [posting, setPosting] = useState(false);
   const [uploading, setUploading] = useState(false);
 

@@ -43,6 +43,9 @@ const CreatePost = () => {
   const [isAd, setIsAd] = useState(false);
   const [ctaUrl, setCtaUrl] = useState("");
   const [ctaLabel, setCtaLabel] = useState("");
+  const [ctaVariant, setCtaVariant] = useState<CtaVariant>("primary");
+  const [ctaBg, setCtaBg] = useState("#1d4ed8");
+  const [ctaFg, setCtaFg] = useState("#ffffff");
   const [posting, setPosting] = useState(false);
   const [uploading, setUploading] = useState(false);
 

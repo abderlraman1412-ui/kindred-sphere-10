@@ -171,6 +171,18 @@ export const PostCard = ({ post, onDelete }: { post: PostRow; onDelete?: (id: st
         </div>
       )}
 
+      {post.cta_url && (
+        <div className="border-t bg-muted/10 px-4 py-3">
+          <Button asChild className="w-full" size="lg">
+            <a href={post.cta_url} target="_blank" rel="noopener noreferrer nofollow">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              {post.cta_label?.trim() || "اعرف المزيد"}
+            </a>
+          </Button>
+        </div>
+      )}
+
+
       <div className="flex items-center justify-between border-t px-2 py-1">
         <Button variant="ghost" size="sm" onClick={toggleLike} className={liked ? "text-destructive" : ""}>
           <Heart className={`mr-1.5 h-4 w-4 ${liked ? "fill-current" : ""}`} /> {likeCount}

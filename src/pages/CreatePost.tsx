@@ -200,6 +200,45 @@ const CreatePost = () => {
               </div>
             )}
 
+            <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="is-ad" className="flex flex-col gap-0.5">
+                  <span>📣 منشور إعلاني</span>
+                  <span className="text-xs font-normal text-muted-foreground">
+                    أضف زر دعوة لإجراء (رابط، تنزيل، إلخ)
+                  </span>
+                </Label>
+                <Switch id="is-ad" checked={isAd} onCheckedChange={setIsAd} />
+              </div>
+
+              {isAd && (
+                <div className="space-y-2 pt-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="cta-url">رابط الزر *</Label>
+                    <Input
+                      id="cta-url"
+                      type="url"
+                      placeholder="https://example.com"
+                      value={ctaUrl}
+                      onChange={(e) => setCtaUrl(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="cta-label">نص الزر</Label>
+                    <Input
+                      id="cta-label"
+                      placeholder="اعرف المزيد / حمّل الآن / زر الموقع"
+                      maxLength={60}
+                      value={ctaLabel}
+                      onChange={(e) => setCtaLabel(e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+
+
             <Button type="submit" disabled={posting || uploading} className="w-full">
               {posting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
               نشر

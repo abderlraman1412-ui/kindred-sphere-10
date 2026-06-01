@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { StarRating } from "@/components/StarRating";
 import { PollWidget } from "@/components/PollWidget";
+import { cn } from "@/lib/utils";
+import { getCtaTemplate, getCtaCustomStyle } from "@/lib/ctaTemplates";
 
 export interface PostRow {
   id: string;

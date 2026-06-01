@@ -13,6 +13,8 @@ import {
   Heart, MessageCircle, Share2, Trash2, Send,
   Volume2, VolumeX, Play, Loader2, X, ArrowLeft, Star, Bookmark, Megaphone,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { getCtaTemplate, getCtaCustomStyle } from "@/lib/ctaTemplates";
 
 type Tier = "normal" | "premium" | "pro" | "vip";
 
